@@ -1,2 +1,2 @@
 # analysis
-Repository for performing and visualising our scraping results
+Repository for performing analysis and visualising our scraping results
