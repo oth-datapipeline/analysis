@@ -21,3 +21,5 @@ if __name__ == '__main__':
 
     # method call for demonstration
     avg_comment_length = reddit_analyzer.comment_length_per_subreddit()
+    twitter_analyzer.create_hashtag_network_from_trend("#DeppHeardTrial")
+    

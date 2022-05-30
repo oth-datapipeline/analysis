@@ -1,4 +1,7 @@
 from pymongo import MongoClient
+import networkx as nx
+import itertools
+from pyvis.network import Network
 
 class TwitterAnalyzer:
 
@@ -64,3 +67,32 @@ class TwitterAnalyzer:
                 }
             }
         ])
+
+    def create_hashtag_network_from_trend(self, trend):
+        result = self.collection.aggregate([
+            {
+                '$match': {
+                    'trend': {
+                        '$eq': trend
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0, 
+                    'hashtags': '$hashtags'
+                }
+            }
+        ])
+
+        G = nx.Graph()
+
+        for i,res in enumerate(result):
+            hashtags = res["hashtags"]
+            for hashtag in hashtags:
+                G.add_node(hashtag)
+            for edge in itertools.combinations(hashtags, 2):
+                G.add_edge(*edge)
+
+        net = Network("800px", "1500px", heading=trend)
+        net.from_nx(G)
+        net.show("hashtags.html")
