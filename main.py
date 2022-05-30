@@ -12,7 +12,7 @@ if __name__ == '__main__':
     user = os.environ["MONGO_INITDB_ROOT_USERNAME"] 
     pw = os.environ["MONGO_INITDB_ROOT_PASSWORD"] 
     mongo_host = os.environ["MONGO_HOST"]
-    client = MongoClient(     mongo_host,     27017,     username=user,     password=pw)
+    client = MongoClient(mongo_host, 27017, username=user, password=pw)
     
     
     reddit_analyzer = RedditAnalyzer(client)
@@ -21,4 +21,3 @@ if __name__ == '__main__':
 
     # method call for demonstration
     avg_comment_length = reddit_analyzer.comment_length_per_subreddit()
-    

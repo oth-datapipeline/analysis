@@ -73,3 +73,116 @@ class RedditAnalyzer:
                 }
             }
         ])
+
+    def distribution_amount_comments_per_user(self):
+        return self.collection.aggregate([
+            {
+                '$project': {
+                    '_id': 0, 
+                    'comment': '$comments'
+                }
+            }, {
+                '$unwind': {
+                    'path': '$comment'
+                }
+            }, {
+                '$group': {
+                    '_id': '$comment.author.name', 
+                    'number_of_comments': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$bucket': {
+                    'groupBy': '$number_of_comments', 
+                    'boundaries': [
+                        1, 2, 5, 10, 20, 100, 200, 500, 1000, 2000
+                    ], 
+                    'default': 'More', 
+                    'output': {
+                        'number_of_users': {
+                            '$sum': 1
+                        }
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0, 
+                    'min_number_of_comments': '$_id', 
+                    'number_of_users': 1
+                }
+            }
+        ])
+
+    def distribution_amount_posts_per_user(self):
+        return self.collection.aggregate([
+            {
+                '$group': {
+                    '_id': '$author.name', 
+                    'number_of_posts': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$bucket': {
+                    'groupBy': '$number_of_posts', 
+                    'boundaries': [ 1, 5, 10, 20, 40, 60, 80, 100, 200, 500, 1000 ], 
+                    'default': 'More', 
+                    'output': {
+                        'number_of_users': {
+                            '$sum': 1
+                        }
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0, 
+                    'min_number_of_posts': '$_id', 
+                    'number_of_users': 1
+                }
+            }
+        ])
+
+    def frequently_used_news_sources(self):
+        return self.collection.aggregate([
+            {
+                '$project': {
+                    '_id': 0, 
+                    'subreddit': '$reddit.subreddit', 
+                    'domain': '$domain'
+                }
+            }, {
+                '$group': {
+                    '_id': '$domain', 
+                    'number_of_occurrences': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$sort': {
+                    'number_of_occurrences': -1
+                }
+            }
+        ])
+
+    def count_posts_per_user(self):
+        return self.collection.aggregate([
+            {
+                '$project': {
+                    '_id': 0, 
+                    'author_name': '$author.name', 
+                    'subreddit': '$reddit.subreddit'
+                }
+            }, {
+                '$group': {
+                    '_id': '$author_name', 
+                    'num_posts': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$sort': {
+                    'num_posts': -1
+                }
+            }
+        ])
