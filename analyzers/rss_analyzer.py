@@ -41,7 +41,7 @@ class RssAnalyzer:
             }
         ])
     
-    def rss_avg_article_length(self):
+    def avg_article_length(self):
         return self.collection.aggregate([
             {
                 '$project': {

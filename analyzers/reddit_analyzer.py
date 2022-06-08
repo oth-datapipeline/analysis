@@ -33,7 +33,7 @@ class RedditAnalyzer:
             }
         ])
 
-    def reddit_keyword_per_sub(self):
+    def keyword_per_subreddit(self):
         return self.collection.aggregate([
             {
                 '$project': {
@@ -74,7 +74,7 @@ class RedditAnalyzer:
             }
         ])
 
-    def distribution_amount_comments_per_user(self):
+    def distribution_number_comments_per_user(self):
         return self.collection.aggregate([
             {
                 '$project': {
@@ -95,9 +95,7 @@ class RedditAnalyzer:
             }, {
                 '$bucket': {
                     'groupBy': '$number_of_comments', 
-                    'boundaries': [
-                        1, 2, 5, 10, 20, 100, 200, 500, 1000, 2000
-                    ], 
+                    'boundaries': [ 1, 2, 5, 10, 20, 100, 200, 500, 1000, 2000  ], 
                     'default': 'More', 
                     'output': {
                         'number_of_users': {
@@ -114,7 +112,7 @@ class RedditAnalyzer:
             }
         ])
 
-    def distribution_amount_posts_per_user(self):
+    def distribution_number_posts_per_user(self):
         return self.collection.aggregate([
             {
                 '$group': {

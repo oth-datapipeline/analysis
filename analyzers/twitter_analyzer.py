@@ -95,4 +95,4 @@ class TwitterAnalyzer:
 
         net = Network("800px", "1500px", heading=trend)
         net.from_nx(G)
-        net.show("hashtags.html")
+        return net
