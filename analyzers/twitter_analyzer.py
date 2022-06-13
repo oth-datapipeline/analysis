@@ -5,18 +5,21 @@ import utils.aggregation_pipelines as ap
 import streamlit as st
 import streamlit.components.v1 as components
 import os
-from utils.frontend_components import selectbox_twitter_trends
 
 class TwitterAnalyzer:
+    static_trend_options = None
 
     def __init__(self, mongoclient):
         self.collection = mongoclient['data']['twitter.tweets']
+        if not TwitterAnalyzer.static_trend_options:
+            trends = list(ap.twitter_recent_trends(self.collection))
+            TwitterAnalyzer.static_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends))
 
     def hashtags_per_trend(self):
         result = ap.twitter_hashtags_per_trend(self.collection)
 
     def create_hashtag_network_from_trend(self):
-        trend = selectbox_twitter_trends(self.collection)
+        trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_trend_options)
         if st.button('Show'):
             result = ap.twitter_get_hashtags_for_specific_trend(self.collection, trend)
             G = nx.Graph()

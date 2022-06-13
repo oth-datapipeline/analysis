@@ -22,7 +22,5 @@ analyses_by_data_source = {
     }
 }
 
-SUBREDDITS = [ 'worldnews', 'news', 'europe', 'politics', 'liberal', 'conservative',
+SUBREDDITS = [ 'worldnews', 'news', 'europe', 'politics', 'liberal', 'Conservative',
                'upliftingnews', 'truereddit', 'inthenews', 'nottheonion' ]
-
-TWITTER_TREND_FILTER_RECENT = 'Recent'

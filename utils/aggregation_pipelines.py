@@ -286,7 +286,7 @@ def twitter_recent_trends(collection):
     return collection.aggregate([
         {
             '$match': {
-                'created_at': { 'gte': start_date}
+                'created_at': { '$gte': start_date }
             }
         }, {
             '$group': {
@@ -303,6 +303,11 @@ def twitter_recent_trends(collection):
             }
         }, {
             '$limit': 100
+        }, {
+            '$project': {
+                '_id': 0,
+                'trend': '$_id.trend'
+            }
         }
     ])
 

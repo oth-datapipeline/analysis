@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from utils.frontend_components import selectbox_subreddit
+import utils.constants as const
 
 class RedditAnalyzer:
     def __init__(self, mongoclient):
@@ -15,7 +15,7 @@ class RedditAnalyzer:
             st.table(result)
 
     def keyword_per_subreddit(self):
-        subreddit = selectbox_subreddit()
+        subreddit = st.selectbox(label='Subreddit', options=tuple(const.SUBREDDITS))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_keyword_per_subreddit(self.collection, subreddit)))
             st.table(result)
@@ -51,7 +51,7 @@ class RedditAnalyzer:
             st.pyplot(fig)
 
     def frequently_used_news_sources(self):
-        subreddit = selectbox_subreddit()
+        subreddit = st.selectbox(label='Subreddit', options=tuple(const.SUBREDDITS))
         if st.button('Show'):
             result = ap.reddit_frequently_used_news_sources(self.collection, subreddit)
             st.table(result)
