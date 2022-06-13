@@ -21,3 +21,8 @@ analyses_by_data_source = {
         'avg_article_length': 'Average article length'
     }
 }
+
+SUBREDDITS = [ 'worldnews', 'news', 'europe', 'politics', 'liberal', 'conservative',
+               'upliftingnews', 'truereddit', 'inthenews', 'nottheonion' ]
+
+TWITTER_TREND_FILTER_RECENT = 'Recent'
