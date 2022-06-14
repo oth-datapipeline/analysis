@@ -3,6 +3,12 @@ import utils.aggregation_pipelines as ap
 class RssAnalyzer:
 
     def __init__(self, mongoclient):
+        """
+        Analyzes collected articles from rss feeds
+
+        :param mongoclient: MongoDB connection client
+        :type mongoclient: pymongo.MongoClient
+        """
         self.collection = mongoclient['data']['rss.articles']
 
     def keyword_count_per_feedsource(self):

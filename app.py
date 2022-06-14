@@ -1,4 +1,7 @@
-"""File for calling the analysis methods and starting streamlit"""
+"""
+Script which starts an interactive dashboard based on streamlit where different analyses on 
+the collected data can be performed 
+"""
 
 from analyzers.reddit_analyzer import RedditAnalyzer
 from analyzers.twitter_analyzer import TwitterAnalyzer
@@ -13,6 +16,9 @@ import streamlit as st
 
 
 def main():
+    """
+    Main Method
+    """
     try:
         user = os.environ["MONGO_INITDB_ROOT_USERNAME"] 
         pw = os.environ["MONGO_INITDB_ROOT_PASSWORD"] 
@@ -48,6 +54,8 @@ def main():
         st.warning(f'Data source {data_source} does not exist')
         st.stop()
 
+
+    # dynamically calling the method corresponding to the analysis that is chosen in the selectbox
     try:
         analysis_method = getattr(analyzer, analysis)
         analysis_method()

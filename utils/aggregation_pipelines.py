@@ -5,6 +5,14 @@ from datetime import datetime, timedelta
 
 
 def reddit_comment_length_per_subreddit(collection):
+    """
+    Aggregation pipeline for comment_length_per_subreddit
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
@@ -39,6 +47,14 @@ def reddit_comment_length_per_subreddit(collection):
 
 
 def reddit_keyword_per_subreddit(collection, subreddit):
+    """
+    Aggregation pipeline for keyword_per_subreddit
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
@@ -83,6 +99,14 @@ def reddit_keyword_per_subreddit(collection, subreddit):
 
 
 def reddit_distribution_number_posts_per_user(collection):
+    """
+    Aggregation pipeline for distribution_number_posts_per_user
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$group': {
@@ -112,6 +136,14 @@ def reddit_distribution_number_posts_per_user(collection):
     ])
 
 def reddit_distribution_number_comments_per_user(collection):
+    """
+    Aggregation pipeline for distribution_number_comments_per_user
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
             {
                 '$project': {
@@ -151,6 +183,14 @@ def reddit_distribution_number_comments_per_user(collection):
 
 
 def reddit_frequently_used_news_sources(collection, subreddit):
+    """
+    Aggregation pipeline for frequently_used_news_sources
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
@@ -173,11 +213,25 @@ def reddit_frequently_used_news_sources(collection, subreddit):
             '$sort': {
                 'number_of_occurrences': -1
             }
+        }, {
+            '$project': {
+                '_id': 0,
+                'domain': '$_id',
+                'number_of_occurrences': '$number_of_occurrences'
+            }
         }
     ])
 
 
 def reddit_count_posts_per_user(collection, limit):
+    """
+    Aggregation pipeline for count_posts_per_user
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
@@ -203,6 +257,14 @@ def reddit_count_posts_per_user(collection, limit):
 
 
 def twitter_hashtags_per_trend(collection):
+    """
+    Aggregation pipeline for hashtags_per_trend
+
+    :param collection: MongoDB collection for tweets
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
@@ -263,6 +325,15 @@ def twitter_hashtags_per_trend(collection):
 
 
 def twitter_get_hashtags_for_specific_trend(collection, trend):
+    """
+    Aggregation pipeline for get_hashtags_for_specific_trend(collection, trend):
+
+
+    :param collection: MongoDB collection for tweets
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$match': {
@@ -280,6 +351,14 @@ def twitter_get_hashtags_for_specific_trend(collection, trend):
 
 
 def twitter_recent_trends(collection):
+    """
+    Aggregation pipeline for fetching current trends
+
+    :param collection: MongoDB collection for tweets
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     today = datetime.now()
     delta = timedelta(days=3)
     start_date = today - delta
@@ -313,6 +392,14 @@ def twitter_recent_trends(collection):
 
 
 def rss_keyword_count_per_feedsource(collection):
+    """
+    Aggregation pipeline for keyword_count_per_feedsource
+
+    :param collection: MongoDB collection for rss articles
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
@@ -349,6 +436,14 @@ def rss_keyword_count_per_feedsource(collection):
 
 
 def rss_avg_article_length(collection):
+    """
+    Aggregation pipeline for avg_article_length
+
+    :param collection: MongoDB collection for rss articles
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
     return collection.aggregate([
         {
             '$project': {
