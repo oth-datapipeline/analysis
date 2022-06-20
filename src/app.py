@@ -34,8 +34,8 @@ def main():
 
     try:
         analysis = st.selectbox(label=f'Select the analysis you want to perform on the {data_source} dataset',
-                                options=const.analyses_by_data_source.get(data_source),
-                                format_func=lambda analysis: const.analyses_by_data_source.get(data_source).get(analysis))
+                                options=const.ANALYSES_BY_DATA_SOURCE.get(data_source),
+                                format_func=lambda analysis: const.ANALYSES_BY_DATA_SOURCE.get(data_source).get(analysis))
 
     except TypeError:
         st.info(f'No analysis implemented for data source {data_source}')

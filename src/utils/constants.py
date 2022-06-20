@@ -4,7 +4,7 @@ DATA_SOURCE_RSS = 'Rss'
 DATA_SOURCE_COMBINED = 'Combined'
 
 # Mapping from analysis labels in the selectbox to the methods of the analyzers
-analyses_by_data_source = {
+ANALYSES_BY_DATA_SOURCE = {
     DATA_SOURCE_REDDIT: {
         'comment_length_per_subreddit': 'Average comment length per subreddit',
         'keyword_per_subreddit': 'Most occurring keywords per subreddit',
