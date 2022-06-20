@@ -5,6 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import utils.constants as const
 
+# There is a known issue with matplotlib and streamlit, see https://docs.streamlit.io/streamlit-cloud/troubleshooting#limitations-and-known-issues
+# Using locks for every figure fixes this issue when running the streamlit app in a Docker environment; running locally there seems to be no issue
+from matplotlib.backends.backend_agg import RendererAgg
+_lock = RendererAgg.lock
+
 class RedditAnalyzer:
     """
     Analyzes collected reddit posts, comments and users
@@ -41,14 +46,16 @@ class RedditAnalyzer:
             labels = result['min_number_of_comments']
             bars = np.arange(len(labels))
             values = result['number_of_users']
-            fig = plt.figure(figsize=(20, 15))
-            plt.bar(x=bars, height=values, align='center')
-            plt.title('Distribution of number of comments over users')
-            plt.xticks(bars, labels)
-            plt.ylabel('Number of users')
-            plt.xlabel('Number of comments')
-            plt.grid(True, axis='y')
-            st.pyplot(fig)
+
+            with _lock:
+                fig = plt.figure(figsize=(20, 15))
+                plt.bar(x=bars, height=values, align='center')
+                plt.title('Distribution of number of comments over users')
+                plt.xticks(bars, labels)
+                plt.ylabel('Number of users')
+                plt.xlabel('Number of comments')
+                plt.grid(True, axis='y')
+                st.pyplot(fig)
 
     def distribution_number_posts_per_user(self):
         """
@@ -59,14 +66,16 @@ class RedditAnalyzer:
             labels = result['min_number_of_posts']
             bars = np.arange(len(labels))
             values = result['number_of_users']
-            fig = plt.figure(figsize=(20, 15))
-            plt.bar(x=bars, height=values, align='center')
-            plt.title('Distribution of number of posts over users')
-            plt.xticks(bars, labels)
-            plt.ylabel('Number of users')
-            plt.xlabel('Number of posts')
-            plt.grid(True, axis='y')
-            st.pyplot(fig)
+
+            with _lock:
+                fig = plt.figure(figsize=(20, 15))
+                plt.bar(x=bars, height=values, align='center')
+                plt.title('Distribution of number of posts over users')
+                plt.xticks(bars, labels)
+                plt.ylabel('Number of users')
+                plt.xlabel('Number of posts')
+                plt.grid(True, axis='y')
+                st.pyplot(fig)
 
     def frequently_used_news_sources(self):
         """
