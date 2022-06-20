@@ -391,7 +391,7 @@ def twitter_recent_trends(collection):
     ])
 
 
-def rss_keyword_count_per_feedsource(collection):
+def rss_keyword_count_per_feedsource(collection, limit):
     """
     Aggregation pipeline for keyword_count_per_feedsource
 
@@ -431,8 +431,10 @@ def rss_keyword_count_per_feedsource(collection):
                 'tag': '$_id.tag', 
                 'count': '$count'
             }
+        }, {
+            '$limit': limit
         }
-    ])
+    ], allowDiskUse=True)
 
 
 def rss_avg_article_length(collection):
@@ -465,3 +467,88 @@ def rss_avg_article_length(collection):
             }
         }
     ])
+
+def rss_tags(collection):
+    return collection.aggregate([
+            {
+                '$project': {
+                    'feed_source': 1, 
+                    'tags': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$tags'
+                }
+            }, {
+                '$group': {
+                    '_id': '$feed_source', 
+                    'tags': {
+                        '$push': '$tags'
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0, 
+                    'feed_source': '$_id', 
+                    'tags': 1
+                }
+            }
+        ])
+
+def rss_content(collection):
+    return collection.aggregate([
+            {
+                '$project': {
+                    'feed_source': 1,
+                    'content': 1
+                }
+            }
+        ])
+
+def rss_published_distribution_per_weekday(collection):
+    return collection.aggregate([
+            {
+                '$match': {
+                    'published': {
+                        '$type': 9
+                    }
+                }
+            }, {
+                '$project': {
+                    'day': {
+                        '$isoDayOfWeek': '$published'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$day', 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }
+        ])
+
+def rss_published_distribution_per_hour(collection):
+    return collection.aggregate([
+            {
+                '$match': {
+                    'published': {
+                        '$type': 9
+                    }
+                }
+            }, {
+                '$project': {
+                    'day': {
+                        '$isoDayOfWeek': '$published'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$day', 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }
+        ])
