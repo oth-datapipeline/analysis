@@ -1,0 +1,41 @@
+name: Sonar Scan & Quality Checks on PR
+
+on:
+  workflow_dispatch:   # Allows for manually triggering pipeline
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: '${{ github.repository }}'
+
+jobs:
+  dockerBuild:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'  # Only build docker image on push to master/develop
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: '${{ env.REGISTRY }}'
+          username: '${{ github.actor }}'
+          password: '${{ secrets.GITHUB_TOKEN }}'
+      - name: Set tag LATEST  # Set tag based on branch
+        if: github.ref == 'refs/heads/master'
+        run: echo 'TAG=latest' >> $GITHUB_ENV
+      - name: Set tag DEVELOP
+        if: github.ref == 'refs/heads/develop'
+        run: echo 'TAG=develop' >> $GITHUB_ENV
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: >-
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
