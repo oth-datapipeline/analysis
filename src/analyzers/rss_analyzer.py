@@ -42,6 +42,19 @@ class RssAnalyzer:
             result = list(ap.rss_avg_article_length(self.collection))
             st.table(result)
 
+    def tags_per_source(self):
+        limit = int(st.text_input("Limit", value="100"))
+        source = st.selectbox(label='News Source', options=tuple(self.sources))
+        if st.button('Show'):
+            data = pd.DataFrame(ap.rss_tag_count(self.collection, source))
+            result = data.sort_values(by=["count"], ascending=False)
+
+            #rearrange column order for better output
+            cols = result.columns.tolist()
+            cols = cols[-2:] + cols[:-2]
+            result = result[cols]
+            st.table(result[:limit])
+            
 
     def tag_similarity(self):
         limit = int(st.text_input("Limit", value="100"))
@@ -153,7 +166,6 @@ class RssAnalyzer:
 
     def headline_stats_per_feed_source(self):
         limit = int(st.text_input("Limit", value="100"))
-        
         source = st.selectbox(label='News Source', options=tuple(self.sources))
         if st.button('Show'):
 

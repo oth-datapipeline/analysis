@@ -495,6 +495,39 @@ def rss_tags(collection):
             }
         ])
 
+def rss_tag_count(collection, source):
+    return collection.aggregate([
+            {
+                '$match': {
+                    'feed_source': {'$eq' : source}
+                }
+            },
+            {
+                '$project': {
+                    'feed_source': 1, 
+                    'tags': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$tags'
+                }
+            }, {
+                '$group': {
+                    '_id': {'feed_source': '$feed_source','tag': '$tags'}, 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0, 
+                    'feed_source': '$_id.feed_source',
+                    'tag': '$_id.tag', 
+                    'count': 1
+                }
+            }
+        ])
+
 def rss_content(collection):
     return collection.aggregate([
             {

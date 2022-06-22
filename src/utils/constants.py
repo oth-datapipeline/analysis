@@ -27,7 +27,8 @@ ANALYSES_BY_DATA_SOURCE = {
         'published_dist_hour': 'Publication date distribution by hour',
         'published_dist_day': 'Publication date distribution by weekday',
         'headline_stats_per_feed_source': 'Headlines per news source',
-        'headline_relative_occurences': 'Influential Topics in Headlines per source'
+        'headline_relative_occurences': 'Influential Topics in Headlines per source',
+        'tags_per_source': 'Most common tags per news source'
     }
 }
 
