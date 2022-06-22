@@ -1,3 +1,4 @@
+from unittest import result
 import utils.aggregation_pipelines as ap
 import streamlit as st
 import pandas as pd
@@ -45,111 +46,77 @@ class RssAnalyzer:
     def tag_similarity(self):
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
-            data = list(ap.rss_tags(self.collection))
-            df = pd.DataFrame(data)
-            sources = df["feed_source"].unique()
-            pairs = itertools.combinations(sources, 2)
-            rows = []
-            for pair in pairs:
-                first_tags = set(df[df["feed_source"] == pair[0]]["tags"].values[0])
-                second_tags = set(df[df["feed_source"] == pair[1]]["tags"].values[0])
-                intersection = first_tags.intersection(second_tags)
-                union = first_tags.union(second_tags)
-                iou_similarity = len(intersection)/len(union)
-                rows.append([*pair, iou_similarity])
-            
-            result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
-
-            result = result.sort_values(by=["Similarity"], ascending=False)
+            result = self._tag_similarity_wrapper(ascending=False)
             st.table(result[:limit])
 
 
     def tag_dissimilarity(self):
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
-            data = list(ap.rss_tags(self.collection))
-            df = pd.DataFrame(data)
-            sources = df["feed_source"].unique()
-            pairs = itertools.combinations(sources, 2)
-            rows = []
-            for pair in pairs:
-                first_tags = set(df[df["feed_source"] == pair[0]]["tags"].values[0])
-                second_tags = set(df[df["feed_source"] == pair[1]]["tags"].values[0])
-                intersection = first_tags.intersection(second_tags)
-                union = first_tags.union(second_tags)
-                iou_similarity = len(intersection)/len(union)
-                rows.append([*pair, iou_similarity])
-            
-            result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
-
-            result = result.sort_values(by=["Similarity"], ascending=True)
+            result = self._tag_similarity_wrapper(ascending=True)
             st.table(result[:limit])
+
+    def _tag_similarity_wrapper(self, ascending=True):
+        data = list(ap.rss_tags(self.collection))
+        df = pd.DataFrame(data)
+        sources = df["feed_source"].unique()
+        pairs = itertools.combinations(sources, 2)
+        rows = []
+        for pair in pairs:
+            first_tags = set(df[df["feed_source"] == pair[0]]["tags"].values[0])
+            second_tags = set(df[df["feed_source"] == pair[1]]["tags"].values[0])
+            intersection = first_tags.intersection(second_tags)
+            union = first_tags.union(second_tags)
+            iou_similarity = len(intersection)/len(union)
+            rows.append([*pair, iou_similarity])
+        
+        result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
+
+        result = result.sort_values(by=["Similarity"], ascending=ascending)
+        return result
 
     def content_similarity(self):
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
-            data = ap.rss_content(self.collection)
-            df = pd.DataFrame(data)
-
-            sws = stopwords.words("english")
-            tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
-            cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
-            df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
-
-            # vectorizer = TfidfVectorizer()
-            vectorizer = HashingVectorizer(n_features=100)
-            X = vectorizer.fit_transform(df['content']).todense()
-
-            average_embeddings = {}
-            sources = df["feed_source"].unique()
-            for source in sources:
-                ids = df[df["feed_source"] == source].index
-                average_embeddings[source] = np.ravel(np.mean(X[ids], axis=0))
-                    
-            pairs = itertools.combinations(sources, 2)
-            rows = []
-            for pair in pairs:
-                x,y = pair
-                similaritiy = np.ravel(cosine_similarity(average_embeddings[x].reshape(1,-1),average_embeddings[y].reshape(1,-1)))[0]
-                rows.append([*pair, similaritiy])
-
-            result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
-
-            result = result.sort_values(by=["Similarity"], ascending=False)
+            result = self._content_similarity_wrapper(ascending=False)
             st.table(result[:limit])
 
     def content_dissimilarity(self):
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
-            data = ap.rss_content(self.collection)
-            df = pd.DataFrame(data)
-
-            sws = stopwords.words("english")
-            tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
-            cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
-            df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
-
-            # vectorizer = TfidfVectorizer()
-            vectorizer = HashingVectorizer(n_features=100)
-            X = vectorizer.fit_transform(df['content']).todense()
-
-            average_embeddings = {}
-            sources = df["feed_source"].unique()
-            for source in sources:
-                ids = df[df["feed_source"] == source].index
-                average_embeddings[source] = np.ravel(np.mean(X[ids], axis=0))
-                    
-            pairs = itertools.combinations(sources, 2)
-            rows = []
-            for pair in pairs:
-                x,y = pair
-                similaritiy = np.ravel(cosine_similarity(average_embeddings[x].reshape(1,-1),average_embeddings[y].reshape(1,-1)))[0]
-                rows.append([*pair, similaritiy])
-
-            result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
-
-            result = result.sort_values(by=["Similarity"], ascending=True)
+            result = self._content_similarity_wrapper(ascending=True)
             st.table(result[:limit])
+
+    def _content_similarity_wrapper(self, ascending=True):
+        data = ap.rss_content(self.collection)
+        df = pd.DataFrame(data)
+
+        sws = stopwords.words("english")
+        tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
+        cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
+        df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
+
+        # vectorizer = TfidfVectorizer()
+        vectorizer = HashingVectorizer(n_features=100)
+        X = vectorizer.fit_transform(df['content']).todense()
+
+        average_embeddings = {}
+        sources = df["feed_source"].unique()
+        for source in sources:
+            ids = df[df["feed_source"] == source].index
+            average_embeddings[source] = np.ravel(np.mean(X[ids], axis=0))
+                
+        pairs = itertools.combinations(sources, 2)
+        rows = []
+        for pair in pairs:
+            x,y = pair
+            similaritiy = np.ravel(cosine_similarity(average_embeddings[x].reshape(1,-1),average_embeddings[y].reshape(1,-1)))[0]
+            rows.append([*pair, similaritiy])
+
+        result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
+
+        result = result.sort_values(by=["Similarity"], ascending=ascending)
+        return result
 
     def published_dist_day(self):
         if st.button('Show'):
