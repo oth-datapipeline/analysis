@@ -18,7 +18,7 @@ ANALYSES_BY_DATA_SOURCE = {
         'create_hashtag_network_from_trend': 'Show hashtag network from trend',
     }, 
     DATA_SOURCE_RSS: {
-        'keyword_count_per_feedsource': 'Common keywords for different feed sources',
+        'publication_stats': 'Number of published articles for the most active sources',
         'avg_article_length': 'Average article length',
         'tag_similarity': 'Most similar news sources based on their tags',
         'tag_dissimilarity': 'Most dissimilar news sources based on their tags',
@@ -28,7 +28,7 @@ ANALYSES_BY_DATA_SOURCE = {
         'published_dist_day': 'Publication date distribution by weekday',
         'headline_stats_per_feed_source': 'Headlines per news source',
         'headline_relative_occurences': 'Influential Topics in Headlines per source',
-        'tags_per_source': 'Most common tags per news source'
+        'tags_per_source': 'Most common Keywords (tags) per news source'
     }
 }
 

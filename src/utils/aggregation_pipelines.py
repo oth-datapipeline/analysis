@@ -390,52 +390,30 @@ def twitter_recent_trends(collection):
         }
     ])
 
-
-def rss_keyword_count_per_feedsource(collection, limit):
-    """
-    Aggregation pipeline for keyword_count_per_feedsource
-
-    :param collection: MongoDB collection for rss articles
-    :type collection: pymongo.collection.Collection
-    :return: result cursor
-    :rtype: pymongo.command_cursor.CommandCursor
-    """
+def rss_publication_stats(collection):
     return collection.aggregate([
         {
             '$project': {
-                'feed_source': '$feed_source', 
-                'tag': '$tags'
+                'feed_source': '$feed_source'
             }
-        }, {
-            '$unwind': {
-                'path': '$tag'
-            }
-        }, {
+        },
+        {
             '$group': {
-                '_id': {
-                    'tag': '$tag', 
-                    'feed_source': '$feed_source'
-                }, 
-                'count': {
+                '_id': '$feed_source', 
+                'article_count': {
                     '$sum': 1
                 }
             }
-        }, {
-            '$sort': {
-                'count': -1
-            }
-        }, {
+        },
+        {
             '$project': {
-                '_id': 0, 
-                'feed_source': '$_id.feed_source', 
-                'tag': '$_id.tag', 
-                'count': '$count'
+                    '_id': 0, 
+                    'feed_source': '$_id', 
+                    'article_count': 1
             }
-        }, {
-            '$limit': limit
         }
-    ], allowDiskUse=True)
-
+    ]
+    )
 
 def rss_avg_article_length(collection):
     """

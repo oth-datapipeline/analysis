@@ -2,6 +2,7 @@ from unittest import result
 import utils.aggregation_pipelines as ap
 import streamlit as st
 import pandas as pd
+import plotly.express as px 
 import numpy as np
 import nltk
 import re
@@ -30,12 +31,14 @@ class RssAnalyzer:
         self.collection = mongoclient['data']['rss.articles']
         self.sources = pd.DataFrame(ap.rss_headlines(self.collection))['feed_source'].unique()
 
-    def keyword_count_per_feedsource(self):
-        limit = int(st.text_input("Limit", value="100"))
+    def publication_stats(self):
         if st.button('Show'):
-            result = list(ap.rss_keyword_count_per_feedsource(self.collection, limit))
-            st.table(result)
-
+            result = pd.DataFrame(ap.rss_publication_stats(self.collection)).sort_values(by=["article_count"], ascending=False)
+            result.rename(columns={"article_count": "Number of articles", "feed_source": "News Source"}, inplace=True)
+            fig=px.bar(result[:30], x='Number of articles', y='News Source', orientation='h')
+            # reverse display order
+            fig.update_yaxes(autorange="reversed")
+            st.write(fig)
     
     def avg_article_length(self):
         if st.button('Show'):
