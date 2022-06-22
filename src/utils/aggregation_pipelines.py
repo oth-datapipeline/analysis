@@ -552,3 +552,13 @@ def rss_published_distribution_per_hour(collection):
                 }
             }
         ])
+
+def rss_headlines(collection):
+    return collection.aggregate([
+            {
+                '$project': {
+                    'title': 1,
+                    'feed_source': 1
+                }
+            }
+        ])

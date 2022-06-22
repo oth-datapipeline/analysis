@@ -64,6 +64,15 @@ def main():
     except Exception:
         st.info("An internal error occurred")
 
+    hide_table_row_index = """
+            <style>
+            tbody th {display:none}
+            .blank {display:none}
+            </style>
+            """
+
+    # Inject CSS with Markdown
+    st.markdown(hide_table_row_index, unsafe_allow_html=True)
     analysis_method()
 
 if __name__ == '__main__':

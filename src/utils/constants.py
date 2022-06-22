@@ -25,7 +25,9 @@ ANALYSES_BY_DATA_SOURCE = {
         'content_similarity': 'Most similar news sources based on their content',
         'content_dissimilarity': 'Most dissimilar news sources based on their content',
         'published_dist_hour': 'Publication date distribution by hour',
-        'published_dist_day': 'Publication date distribution by weekday'
+        'published_dist_day': 'Publication date distribution by weekday',
+        'headline_stats_per_feed_source': 'Headlines per news source',
+        'headline_relative_occurences': 'Influential Topics in Headlines per source'
     }
 }
 
