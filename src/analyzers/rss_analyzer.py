@@ -58,15 +58,21 @@ class RssAnalyzer:
     def tags_per_source(self):
         limit = int(st.text_input("Limit", value="100"))
         source = st.selectbox(label='News Source', options=tuple(self.sources))
+        output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             data = pd.DataFrame(ap.rss_tag_count(self.collection, source))
             result = data.sort_values(by=["count"], ascending=False)
-
-            #rearrange column order for better output
-            cols = result.columns.tolist()
-            cols = cols[-2:] + cols[:-2]
-            result = result[cols]
-            st.table(result[:limit])
+            result = result[:limit]
+            if output_wc == "Yes":
+                occurences = {tag:count for tag,count in zip(result["tag"].tolist(), result["count"].tolist())}
+                wc = WordCloud().fit_words(occurences)
+                st.image(wc.to_array(), use_column_width=True,  output_format='PNG')
+            else:
+                #rearrange column order for better output
+                cols = result.columns.tolist()
+                cols = cols[-2:] + cols[:-2]
+                result = result[cols]
+                st.table(result)
             
 
     def tag_similarity(self):
