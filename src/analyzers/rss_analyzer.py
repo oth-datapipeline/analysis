@@ -2,7 +2,8 @@ from unittest import result
 import utils.aggregation_pipelines as ap
 import streamlit as st
 import pandas as pd
-import plotly.express as px 
+import plotly.express as px
+from wordcloud import WordCloud 
 import numpy as np
 import nltk
 import re
@@ -180,6 +181,7 @@ class RssAnalyzer:
     def headline_stats_per_feed_source(self):
         limit = int(st.text_input("Limit", value="100"))
         source = st.selectbox(label='News Source', options=tuple(self.sources))
+        output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
 
             data = ap.rss_headlines(self.collection)
@@ -204,20 +206,24 @@ class RssAnalyzer:
 
             lowercase_words = list(map(lambda word: word.lower(), flat_words))
             occurences = Counter(lowercase_words)
-            occurences_per_source["Count"] = occurences
+            if output_wc == "Yes":
+                wc = WordCloud().fit_words(occurences)
+                st.image(wc.to_array(), use_column_width=True,  output_format='PNG')
+            else:
+                occurences_per_source["Count"] = occurences
 
-            result = pd.DataFrame.from_dict(occurences_per_source).fillna(0)
-            # print(result)
-            result = result.sort_values(by=["Count"], ascending=False)
-            result["Word"] = result.index
+                result = pd.DataFrame.from_dict(occurences_per_source).fillna(0)
+                # print(result)
+                result = result.sort_values(by=["Count"], ascending=False)
+                result["Word"] = result.index
 
-            #rearrange column order for better output
-            cols = result.columns.tolist()
-            cols = cols[-1:] + cols[:-1]
-            result = result[cols]
+                #rearrange column order for better output
+                cols = result.columns.tolist()
+                cols = cols[-1:] + cols[:-1]
+                result = result[cols]
 
-            st.info(f"Headline word count for {source}")
-            st.table(result[:limit])
+                st.info(f"Headline word count for {source}")
+                st.table(result[:limit])
 
     def headline_relative_occurences(self):
         limit = int(st.text_input("Limit", value="100"))
