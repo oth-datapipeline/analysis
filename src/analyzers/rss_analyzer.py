@@ -21,6 +21,8 @@ from collections import Counter, defaultdict
 
 class RssAnalyzer:
 
+    static_source_options = None
+
     def __init__(self, mongoclient):
         """
         Analyzes collected articles from rss feeds
@@ -29,7 +31,11 @@ class RssAnalyzer:
         :type mongoclient: pymongo.MongoClient
         """
         self.collection = mongoclient['data']['rss.articles']
-        self.sources = pd.DataFrame(ap.rss_headlines(self.collection))['feed_source'].unique()
+
+        if not RssAnalyzer.static_source_options:
+            RssAnalyzer.static_source_options = pd.DataFrame(ap.rss_headlines(self.collection))['feed_source'].unique().tolist()
+        
+        self.sources = RssAnalyzer.static_source_options
 
     def publication_stats(self):
         if st.button('Show'):
@@ -42,8 +48,11 @@ class RssAnalyzer:
     
     def avg_article_length(self):
         if st.button('Show'):
-            result = list(ap.rss_avg_article_length(self.collection))
-            st.table(result)
+            result =  pd.DataFrame(ap.rss_avg_article_length(self.collection)).sort_values(by=["avg_article_length"], ascending=False)
+            result.rename(columns={"_id": "News Source", 'avg_article_length': 'Average Article Length'}, inplace=True)
+            fig=px.bar(result, x='Average Article Length', y='News Source', orientation='h')
+            fig.update_yaxes(autorange="reversed")
+            st.write(fig)
 
     def tags_per_source(self):
         limit = int(st.text_input("Limit", value="100"))
@@ -153,8 +162,8 @@ class RssAnalyzer:
                 rows.append([daysOftheWeek[row["_id"]], row["count"]])
             
             published_on = pd.DataFrame(rows, columns=["Weekday", "Count"])
-
-            st.table(published_on)
+            fig=px.bar(published_on, x='Weekday', y='Count', orientation='v')
+            st.write(fig)
 
     def published_dist_hour(self):
         if st.button('Show'):
@@ -165,7 +174,8 @@ class RssAnalyzer:
 
             published_on = pd.DataFrame(rows, columns=["Hour", "Count"])
 
-            st.table(published_on)
+            fig=px.bar(published_on, x='Hour', y='Count', orientation='v')
+            st.write(fig)
 
     def headline_stats_per_feed_source(self):
         limit = int(st.text_input("Limit", value="100"))
@@ -199,9 +209,14 @@ class RssAnalyzer:
             result = pd.DataFrame.from_dict(occurences_per_source).fillna(0)
             # print(result)
             result = result.sort_values(by=["Count"], ascending=False)
-            result.index.rename('Word', inplace=True)
-            st.info(f"Headline word count for {source}")
+            result["Word"] = result.index
 
+            #rearrange column order for better output
+            cols = result.columns.tolist()
+            cols = cols[-1:] + cols[:-1]
+            result = result[cols]
+
+            st.info(f"Headline word count for {source}")
             st.table(result[:limit])
 
     def headline_relative_occurences(self):

@@ -551,7 +551,7 @@ def rss_published_distribution_per_hour(collection):
             }, {
                 '$project': {
                     'day': {
-                        '$isoDayOfWeek': '$published'
+                        '$hour': '$published'
                     }
                 }
             }, {
@@ -560,6 +560,10 @@ def rss_published_distribution_per_hour(collection):
                     'count': {
                         '$sum': 1
                     }
+                }
+            }, {
+                '$sort': {
+                    '_id': 1
                 }
             }
         ])
