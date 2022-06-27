@@ -36,6 +36,9 @@ class RssAnalyzer:
         self.sources = RssAnalyzer.static_source_options
 
     def publication_stats(self):
+        """
+        Analyzes the number of articles published by each news source. Output is provided as bar chart.
+        """
         if st.button('Show'):
             result = pd.DataFrame(ap.rss_publication_stats(self.collection)).sort_values(by=["article_count"], ascending=False)
             result.rename(columns={"article_count": "Number of articles", "feed_source": "News Source"}, inplace=True)
@@ -45,6 +48,9 @@ class RssAnalyzer:
             st.write(fig)
     
     def avg_article_length(self):
+        """
+        Analyzes the average article length of a news source in number of characters. Output is provided as bar chart.
+        """
         if st.button('Show'):
             result =  pd.DataFrame(ap.rss_avg_article_length(self.collection)).sort_values(by=["avg_article_length"], ascending=False)
             result.rename(columns={"_id": "News Source", 'avg_article_length': 'Average Article Length'}, inplace=True)
@@ -53,6 +59,9 @@ class RssAnalyzer:
             st.write(fig)
 
     def tags_per_source(self):
+        """
+        Analyzes commonly occurring tags of a news source. Output is provided as table or as wordcloud.
+        """
         limit = int(st.text_input("Limit", value="100"))
         source = st.selectbox(label='News Source', options=tuple(self.sources))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
@@ -73,6 +82,9 @@ class RssAnalyzer:
             
 
     def tag_similarity(self):
+        """
+        Analyzes the similarity of news articles based on their tags
+        """
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
             result = self._tag_similarity_wrapper(ascending=False)
@@ -80,12 +92,18 @@ class RssAnalyzer:
 
 
     def tag_dissimilarity(self):
+        """
+        Analyzes the dissimilarity of news articles based on their tags
+        """
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
             result = self._tag_similarity_wrapper(ascending=True)
             st.table(result[:limit])
 
     def _tag_similarity_wrapper(self, ascending=True):
+        """
+        Helper function for tag_similarity and tag_dissimilarity 
+        """
         data = list(ap.rss_tags(self.collection))
         df = pd.DataFrame(data)
         sources = df["feed_source"].unique()
@@ -105,18 +123,27 @@ class RssAnalyzer:
         return result
 
     def content_similarity(self):
+        """
+        Analyzes the similarity of news articles based on their article content
+        """
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
             result = self._content_similarity_wrapper(ascending=False)
             st.table(result[:limit])
 
     def content_dissimilarity(self):
+        """
+        Analyzes the dissimilarity of news articles based on their article content
+        """
         limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
             result = self._content_similarity_wrapper(ascending=True)
             st.table(result[:limit])
 
     def _content_similarity_wrapper(self, ascending=True):
+        """
+        Helper function for content_similarity and content_dissimilarity 
+        """
         data = ap.rss_content(self.collection)
         df = pd.DataFrame(data)
 
@@ -148,6 +175,9 @@ class RssAnalyzer:
         return result
 
     def published_dist_day(self):
+        """
+        Analyzes on which day of the week most articles are published. Output is provided as bar chart.
+        """
         if st.button('Show'):
             data = ap.rss_published_distribution_per_weekday(self.collection)
             
@@ -170,6 +200,9 @@ class RssAnalyzer:
             st.write(fig)
 
     def published_dist_hour(self):
+        """
+        Analyzes during which hours of the day most articles are published. Output is provided as bar chart.
+        """
         if st.button('Show'):
             data = ap.rss_published_distribution_per_hour(self.collection)
             rows = []
@@ -182,6 +215,9 @@ class RssAnalyzer:
             st.write(fig)
 
     def headline_stats_per_feed_source(self):
+        """
+        Analyzes common words occuring in headlines of a news source. Output provided as table or wordcloud.
+        """
         limit = int(st.text_input("Limit", value="100"))
         source = st.selectbox(label='News Source', options=tuple(self.sources))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
@@ -229,6 +265,9 @@ class RssAnalyzer:
                 st.table(result[:limit])
 
     def headline_relative_occurences(self):
+        """
+        Analyzes the relative influence of words occuring in the headlines of a source compared to the complete corpus.
+        """
         limit = int(st.text_input("Limit", value="100"))
         source_selection = st.selectbox(label='News Source', options=tuple(self.sources))
         if st.button('Show'):
