@@ -28,3 +28,5 @@ RUN ls -a src/
 
 # check for running venv
 RUN which python
+
+CMD streamlit run ./src/app.py
