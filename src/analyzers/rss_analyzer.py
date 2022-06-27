@@ -1,4 +1,3 @@
-from unittest import result
 import utils.aggregation_pipelines as ap
 import streamlit as st
 import pandas as pd
@@ -10,12 +9,10 @@ import re
 from pymongo import MongoClient
 import itertools
 
-from sklearn.feature_extraction.text import TfidfVectorizer, HashingVectorizer
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
+from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 from collections import Counter, defaultdict
