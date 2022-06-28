@@ -1,16 +1,10 @@
 import utils.aggregation_pipelines as ap
 import streamlit as st
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import utils.constants as const
 import plotly.express as px
 from wordcloud import WordCloud
 
-# There is a known issue with matplotlib and streamlit, see https://docs.streamlit.io/streamlit-cloud/troubleshooting#limitations-and-known-issues
-# Using locks for every figure fixes this issue when running the streamlit app in a Docker environment; running locally there seems to be no issue
-from matplotlib.backends.backend_agg import RendererAgg
-_lock = RendererAgg.lock
 
 class RedditAnalyzer:
     """

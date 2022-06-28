@@ -58,10 +58,22 @@ def main():
     # dynamically calling the method corresponding to the analysis that is chosen in the selectbox
     try:
         analysis_method = getattr(analyzer, analysis)
-        analysis_method()
+        
     except AttributeError:
         st.info(f'The analysis you chose ({analysis}) is yet to be implemented')
+    except Exception:
+        st.info("An internal error occurred")
 
+    hide_table_row_index = """
+            <style>
+            tbody th {display:none}
+            .blank {display:none}
+            </style>
+            """
+
+    # Inject CSS with Markdown
+    st.markdown(hide_table_row_index, unsafe_allow_html=True)
+    analysis_method()
 
 if __name__ == '__main__':
     main()
