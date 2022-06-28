@@ -33,8 +33,11 @@ class RedditAnalyzer:
         Analyzes which keywords are commonly used on a specific subreddit
         """
         subreddit = st.selectbox(label='Subreddit', options=tuple(const.SUBREDDITS))
+        limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
-            result = pd.DataFrame(list(ap.reddit_keyword_per_subreddit(self.collection, subreddit)))
+            result = list(ap.reddit_keyword_per_subreddit(self.collection, subreddit))
+            result = list(filter(lambda row: not row["keyword"].isspace(), result))
+            result = pd.DataFrame(result[:limit])
             st.table(result)
 
     def distribution_number_comments_per_user(self):
