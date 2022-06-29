@@ -577,3 +577,225 @@ def rss_headlines(collection):
                 }
             }
         ])
+
+def upserting_combined_analysis_for_twitter(collection):
+    """
+    Aggregation pipeline for filling the collection 'combined_keyword_analysis' from Twitter
+
+    :param collection: MongoDB collection for twitter tweets
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate(
+        [
+            {
+                '$addFields': {
+                    'trend_and_hashtags': {
+                        '$concatArrays': [
+                            [
+                                {
+                                    '$ltrim': {
+                                        'input': '$trend', 
+                                        'chars': '#'
+                                    }
+                                }
+                            ], '$hashtags'
+                        ]
+                    }
+                }
+            }, {
+                '$project': {
+                    'created_at_trunc': {
+                        '$dateFromParts': {
+                            'year': {
+                                '$year': '$created_at'
+                            }, 
+                            'month': {
+                                '$month': '$created_at'
+                            }, 
+                            'day': {
+                                '$dayOfMonth': '$created_at'
+                            }
+                        }
+                    }, 
+                    'trend_and_hashtags': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$trend_and_hashtags'
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': '$trend_and_hashtags', 
+                        'date': '$created_at_trunc', 
+                        'source': 'twitter'
+                    }, 
+                    'ids': {
+                        '$addToSet': '$_id'
+                    }
+                }
+            }, {
+                '$project': {
+                    'count': {
+                        '$size': '$ids'
+                    }
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gte': 10
+                    }
+                }
+            }, {
+                '$merge': {
+                    'into': 'combined_keyword_analysis', 
+                    'on': '_id', 
+                    'whenMatched': 'replace', 
+                    'whenNotMatched': 'insert'
+                }
+            }
+        ]
+    )
+
+def upserting_combined_analysis_for_reddit(collection):
+    """
+    Aggregation pipeline for filling the collection 'combined_keyword_analysis' from Reddit
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate(
+        [
+            {
+                '$project': {
+                    'created_trunc': {
+                        '$dateFromParts': {
+                            'year': {
+                                '$year': '$created'
+                            }, 
+                            'month': {
+                                '$month': '$created'
+                            }, 
+                            'day': {
+                                '$dayOfMonth': '$created'
+                            }
+                        }
+                    }, 
+                    'keywords': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$keywords'
+                }
+            }, {
+                '$match': {
+                    'keywords': {
+                        '$ne': ''
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': '$keywords', 
+                        'date': '$created_trunc', 
+                        'source': 'reddit'
+                    }, 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gte': 10
+                    }
+                }
+            }, {
+                '$merge': {
+                    'into': 'combined_keyword_analysis', 
+                    'on': '_id', 
+                    'whenMatched': 'replace', 
+                    'whenNotMatched': 'insert'
+                }
+            }
+        ]
+    )
+
+def upserting_combined_analysis_for_rss(collection):
+    """
+    Aggregation pipeline for filling the collection 'combined_keyword_analysis' from RSS
+
+    :param collection: MongoDB collection for rss articles
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate(
+        [
+            {
+                '$project': {
+                    'published': 1, 
+                    'type': {
+                        '$type': '$published'
+                    }, 
+                    'tags': 1
+                }
+            }, {
+                '$match': {
+                    'published': {
+                        '$ne': None
+                    }, 
+                    'type': 'date'
+                }
+            }, {
+                '$project': {
+                    'published_trunc': {
+                        '$dateFromParts': {
+                            'year': {
+                                '$year': '$published'
+                            }, 
+                            'month': {
+                                '$month': '$published'
+                            }, 
+                            'day': {
+                                '$dayOfMonth': '$published'
+                            }
+                        }
+                    }, 
+                    'tags': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$tags'
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': '$tags', 
+                        'date': '$published_trunc', 
+                        'source': 'rss'
+                    }, 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gte': 10
+                    }
+                }
+            }, {
+                '$merge': {
+                    'into': 'combined_keyword_analysis', 
+                    'on': '_id', 
+                    'whenMatched': 'replace', 
+                    'whenNotMatched': 'insert'
+                }
+            }
+        ]
+    )
