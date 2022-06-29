@@ -349,6 +349,51 @@ def twitter_get_hashtags_for_specific_trend(collection, trend):
         }
     ])
 
+def twitter_hashtag_count_per_usertype(collection, day_predicate):
+    return collection.aggregate([
+        {
+            '$addFields': {
+                'diff_days': {
+                    '$divide': [
+                        {
+                            '$subtract': [
+                                '$created_at', '$author.created_at'
+                            ]
+                        }, 86400000
+                    ]
+                }
+            }
+        }, {
+            '$match': {
+                'diff_days': day_predicate 
+                # {
+                #     '$gte': user_age_in_days
+                # }
+            }
+        }, {
+            '$unwind': {
+                'path': '$hashtags'
+            }
+        }, {
+            '$group': {
+                '_id': '$hashtags', 
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                'count': -1
+            }
+        }, {
+            '$project': {
+                '_id': 0, 
+                'hashtag': '$_id', 
+                'count': 1
+            }
+        }
+    ])
+
 
 def twitter_recent_trends(collection):
     """
@@ -414,6 +459,76 @@ def rss_publication_stats(collection):
         }
     ]
     )
+
+def twitter_user_stats(collection):
+    return collection.aggregate([
+        {
+            '$addFields': {
+                'diff_days': {
+                    '$divide': [
+                        {
+                            '$subtract': [
+                                '$created_at', '$author.created_at'
+                            ]
+                        }, 86400000
+                    ]
+                }
+            }
+        }, 
+            {
+            '$match': {
+                'diff_days': {
+                    '$gte': 0
+                }
+            }
+        },
+            {
+            '$bucket': {
+                'groupBy': '$diff_days', 
+                'boundaries': [
+                    0, 1, 30, 365, 730, 1825, 3650, 5475, 6000
+                ], 
+                'default': 'Other', 
+                'output': {
+                    'count': {
+                        '$sum': 1
+                    }, 
+                    'avg_likes': {
+                        '$avg': '$metrics.like_count'
+                    }, 
+                    'avg_quoted': {
+                        '$avg': '$metrics.quote_count'
+                    }, 
+                    'avg_retweets': {
+                        '$avg': '$metrics.retweet_count'
+                    }, 
+                    'avg_replies': {
+                        '$avg': '$metrics.reply_count'
+                    }, 
+                    'avg_follower': {
+                        '$avg': '$author.num_followers'
+                    }, 
+                    'num_verified': {
+                        '$sum': {
+                            '$switch': {
+                                'branches': [
+                                    {
+                                        'case': {
+                                            '$eq': [
+                                                '$author.verified', True
+                                            ]
+                                        }, 
+                                        'then': 1
+                                    }
+                                ], 
+                                'default': 0
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ])
 
 def rss_avg_article_length(collection):
     """
