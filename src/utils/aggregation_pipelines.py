@@ -390,6 +390,78 @@ def twitter_recent_trends(collection):
         }
     ])
 
+def twitter_tweets_with_links(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'text': {
+                    '$split': [
+                        '$text', ' '
+                    ]
+                }
+            }
+        }, {
+            '$unwind': {
+                'path': '$text'
+            }
+        }, {
+            '$project': {
+                'text': {
+                    '$regexMatch': {
+                        'input': '$text', 
+                        'regex': 'http'
+                    }
+                }
+            }
+        }, {
+            '$match': {
+                'text': {
+                    '$eq': True
+                }
+            }
+        }, {
+            '$count': 'text'
+        }
+    ])
+
+def twitter_tweets_with_likes(collection):
+    return collection.aggregate([
+    {
+        '$project': {
+            'likes': '$metrics.like_count', 
+            'text': 1
+        }
+    }
+])
+
+def twitter_tweet_sentiments(collection):
+    return collection.aggregate([
+    {
+        '$match': {
+            'sentiment': {
+                '$exists': 1
+            }
+        }
+    }, {
+        '$project': {
+            'sentiment': '$sentiment.compound'
+        }
+    }, {
+        '$bucket': {
+            'groupBy': '$sentiment', 
+            'boundaries': [
+                -0.05, 0.05, 1
+            ], 
+            'default': 'neutral', 
+            'output': {
+                'tweet_count': {
+                    '$sum': 1
+                }
+            }
+        }
+    }
+])   
+
 def rss_publication_stats(collection):
     return collection.aggregate([
         {

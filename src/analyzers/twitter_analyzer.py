@@ -6,6 +6,11 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 import pandas as pd
+from better_profanity import profanity
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+
 
 class TwitterAnalyzer:
     """
@@ -53,3 +58,11 @@ class TwitterAnalyzer:
             with open(html_location, 'r', encoding='utf-8') as html_file:
                 components.html(html=html_file.read(), height=800)
             os.remove(html_location)
+
+    def swearword_per_tweet(self):
+        tweets = list(ap.twitter_hashtags_per_trend(self.collection))
+
+        for tweet in tweets:
+            # sws = stopwords.words("english")
+            # tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
+            # cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
