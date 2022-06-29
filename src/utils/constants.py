@@ -32,5 +32,5 @@ ANALYSES_BY_DATA_SOURCE = {
     }
 }
 
-SUBREDDITS = [ 'worldnews', 'news', 'europe', 'politics', 'liberal', 'Conservative',
-               'upliftingnews', 'truereddit', 'inthenews', 'nottheonion' ]
+SUBREDDITS = [ 'worldnews', 'news', 'europe', 'politics', 'Liberal', 'Conservative',
+               'UpliftingNews', 'TrueReddit', 'inthenews', 'nottheonion' ]
