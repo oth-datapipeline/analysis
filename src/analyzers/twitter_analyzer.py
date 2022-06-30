@@ -41,8 +41,9 @@ class TwitterAnalyzer:
         """
         Analyzes how many tweets tagged a trend as a hashtag
         """
-        result = pd.DataFrame(list(ap.twitter_hashtags_per_trend(self.collection)))
+        limit = int(st.text_input("Limit", value="100"))
         if st.button('Show'):
+            result = pd.DataFrame(list(ap.twitter_hashtags_per_trend(self.collection, limit=limit)))
             st.table(result)
 
     def create_hashtag_network_from_trend(self):

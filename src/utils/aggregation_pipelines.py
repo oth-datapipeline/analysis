@@ -274,7 +274,7 @@ def twitter_valid_dates(collection):
         }
     ])
 
-def twitter_hashtags_per_trend(collection):
+def twitter_hashtags_per_trend(collection, limit=100):
     """
     Aggregation pipeline for hashtags_per_trend
 
@@ -338,6 +338,8 @@ def twitter_hashtags_per_trend(collection):
             '$sort': {
                 'count': -1
             }
+        }, {
+            '$limit': limit
         }
     ])
 
