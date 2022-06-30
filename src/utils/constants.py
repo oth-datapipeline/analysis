@@ -16,6 +16,8 @@ ANALYSES_BY_DATA_SOURCE = {
     DATA_SOURCE_TWITTER: {
         'hashtags_per_trend': 'Common hashtags per trend',
         'create_hashtag_network_from_trend': 'Show hashtag network from trend',
+        'profanity_like_correlation': 'Correlation between profanity of tweets and their likes',
+        'links_tweet_share': 'Share of link tweets in total tweets'
     }, 
     DATA_SOURCE_RSS: {
         'publication_stats': 'Number of published articles for the most active sources',

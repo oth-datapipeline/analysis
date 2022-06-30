@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import networkx as nx
 import itertools
 from pyvis.network import Network
@@ -6,10 +7,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 import os
 import pandas as pd
-from better_profanity import profanity
-import nltk
-nltk.download('stopwords')
-from nltk.corpus import stopwords
+from profanity_check import predict_prob
+import plotly.express as px
 
 
 class TwitterAnalyzer:
@@ -59,10 +58,43 @@ class TwitterAnalyzer:
                 components.html(html=html_file.read(), height=800)
             os.remove(html_location)
 
-    def swearword_per_tweet(self):
-        tweets = list(ap.twitter_hashtags_per_trend(self.collection))
+    def profanity_like_correlation(self):
+        if st.button('Show'):
 
-        for tweet in tweets:
-            # sws = stopwords.words("english")
-            # tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
-            # cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
+            tweets = list(ap.twitter_tweets_with_likes(self.collection))
+            df = pd.DataFrame(tweets)
+
+            profanity_scores = predict_prob(df["text"])
+            df["profanity_scores"] = profanity_scores
+
+            pd.cut(df["profanity_scores"], [0, 0.25, 0.5, 0.75, 1])
+
+            bins = pd.cut(df["profanity_scores"], bins=[0, 0.25, 0.5, 0.75, 1])
+            grouped_bins_avg_likes = df.groupby(bins)['likes'].mean()
+            bin_index = grouped_bins_avg_likes.index.values.astype('str')
+
+            fig=px.bar(grouped_bins_avg_likes, x=bin_index, y="likes")
+            fig.update_layout(xaxis_title="Profanity Scores", yaxis_title="Average Likes")
+            st.write(fig)
+
+    def links_tweet_share(self):
+        if st.button('Show'):
+            result = list(ap.twitter_tweets_with_links(self.collection))
+            tweet_total = self.collection.estimated_document_count()
+            total_count = { "total_count": tweet_total }
+            result.append(total_count)
+            
+            # counts = [ result[0]["like_count"], tweet_total ]
+            # labels = [ "likes", "total" ]
+            # content = [counts, labels]
+
+            content = [
+                {"count": result[0]["like_count"], "label": "Link Tweets"},
+                {"count": tweet_total, "label": "Total Tweets"}
+            ]
+
+            df = pd.DataFrame(content)
+            print(df)
+
+            fig = px.pie(df, values="count", names="label")
+            st.write(fig)

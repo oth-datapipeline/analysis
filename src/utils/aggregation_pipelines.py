@@ -392,37 +392,41 @@ def twitter_recent_trends(collection):
 
 def twitter_tweets_with_links(collection):
     return collection.aggregate([
-        {
-            '$project': {
-                'text': {
-                    '$split': [
-                        '$text', ' '
-                    ]
-                }
+    {
+        '$project': {
+            'text': {
+                '$split': [
+                    '$text', ' '
+                ]
             }
-        }, {
-            '$unwind': {
-                'path': '$text'
-            }
-        }, {
-            '$project': {
-                'text': {
-                    '$regexMatch': {
-                        'input': '$text', 
-                        'regex': 'http'
-                    }
-                }
-            }
-        }, {
-            '$match': {
-                'text': {
-                    '$eq': True
-                }
-            }
-        }, {
-            '$count': 'text'
         }
-    ])
+    }, {
+        '$unwind': {
+            'path': '$text'
+        }
+    }, {
+        '$project': {
+            'text': {
+                '$regexMatch': {
+                    'input': '$text', 
+                    'regex': 'http'
+                }
+            }
+        }
+    }, {
+        '$match': {
+            'text': {
+                '$eq': True
+            }
+        }
+    }, {
+        '$count': 'text'
+    }, {
+        '$project': {
+            'like_count': '$text'
+        }
+    }
+])
 
 def twitter_tweets_with_likes(collection):
     return collection.aggregate([
