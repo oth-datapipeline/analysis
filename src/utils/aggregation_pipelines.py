@@ -300,6 +300,60 @@ def twitter_common_hashtags(collection, limit=100):
         }
     ])
 
+def twitter_high_interaction_hashtags(collection, limit=100):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hashtags': 1, 
+                'replies': '$metrics.reply_count'
+            }
+        }, {
+            '$unwind': {
+                'path': '$hashtags'
+            }
+        }, {
+            '$group': {
+                '_id': '$hashtags', 
+                'num_replies': {
+                    '$sum': '$replies'
+                }
+            }
+        }, {
+            '$sort': {
+                'num_replies': -1
+            }
+        }, {
+            '$limit': limit
+        }
+    ])
+
+def twitter_most_liked_hashtags(collection, limit=100):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hashtags': 1, 
+                'likes': '$metrics.like_count'
+            }
+        }, {
+            '$unwind': {
+                'path': '$hashtags'
+            }
+        }, {
+            '$group': {
+                '_id': '$hashtags', 
+                'num_likes': {
+                    '$sum': '$likes'
+                }
+            }
+        }, {
+            '$sort': {
+                'num_likes': -1
+            }
+        }, {
+            '$limit': limit
+        }
+    ])
+
 def twitter_hashtags_per_trend(collection, limit=100):
     """
     Aggregation pipeline for hashtags_per_trend

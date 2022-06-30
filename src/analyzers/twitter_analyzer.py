@@ -61,6 +61,36 @@ class TwitterAnalyzer:
                 fig.update_yaxes(autorange="reversed")
                 st.write(fig)
 
+    def most_liked_hashtags(self):
+        limit = int(st.text_input("Limit", value="100"))
+        output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.twitter_most_liked_hashtags(self.collection, limit=limit)))
+            result.rename(columns={"_id": "Hashtag", 'num_likes': 'Number of Likes'}, inplace=True)
+            if output_wc == "Yes":
+                occurences = {tag:count for tag,count in zip(result["Hashtag"].tolist(), result["Number of Likes"].tolist())}
+                wc = WordCloud().fit_words(occurences)
+                st.image(wc.to_array(), use_column_width=True,  output_format='PNG')
+            else:
+                fig=px.bar(result, x='Number of Likes', y='Hashtag', orientation='h')
+                fig.update_yaxes(autorange="reversed")
+                st.write(fig)
+
+    def high_interaction_hashtags(self):
+        limit = int(st.text_input("Limit", value="100"))
+        output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.twitter_high_interaction_hashtags(self.collection, limit=limit)))
+            result.rename(columns={"_id": "Hashtag", 'num_replies': 'Number of Replies'}, inplace=True)
+            if output_wc == "Yes":
+                occurences = {tag:count for tag,count in zip(result["Hashtag"].tolist(), result["Number of Replies"].tolist())}
+                wc = WordCloud().fit_words(occurences)
+                st.image(wc.to_array(), use_column_width=True,  output_format='PNG')
+            else:
+                fig=px.bar(result, x='Number of Replies', y='Hashtag', orientation='h')
+                fig.update_yaxes(autorange="reversed")
+                st.write(fig)
+
     def create_hashtag_network_from_trend(self):
         """
         Analyzes the networks created by common occurences of hashtags

@@ -14,8 +14,10 @@ ANALYSES_BY_DATA_SOURCE = {
         'count_posts_per_user': 'Most active users',
     },
     DATA_SOURCE_TWITTER: {
-        'hashtags_per_trend': 'Common hashtags per trend',
         'most_common_hashtags': 'Common hashtags overall',
+        'high_interaction_hashtags': 'Hashtags with most Replies',
+        'most_liked_hashtags': 'Most liked Hashtags',
+        'hashtags_per_trend': 'Common hashtags per trend',
         'create_hashtag_network_from_trend': 'Show hashtag network from trend',
         'recent_user_trends': 'Trends of recently created users',
         'bot_trends': 'Trends of (possible) bots',
