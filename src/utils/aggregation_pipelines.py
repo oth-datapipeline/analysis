@@ -274,6 +274,32 @@ def twitter_valid_dates(collection):
         }
     ])
 
+def twitter_common_hashtags(collection, limit=100):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hashtags': 1
+            }
+        }, {
+            '$unwind': {
+                'path': '$hashtags'
+            }
+        }, {
+            '$group': {
+                '_id': '$hashtags', 
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                'count': -1
+            }
+        }, {
+            '$limit': limit
+        }
+    ])
+
 def twitter_hashtags_per_trend(collection, limit=100):
     """
     Aggregation pipeline for hashtags_per_trend

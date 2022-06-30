@@ -46,6 +46,21 @@ class TwitterAnalyzer:
             result = pd.DataFrame(list(ap.twitter_hashtags_per_trend(self.collection, limit=limit)))
             st.table(result)
 
+    def most_common_hashtags(self):
+        limit = int(st.text_input("Limit", value="100"))
+        output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.twitter_common_hashtags(self.collection, limit=limit)))
+            result.rename(columns={"_id": "Hashtag", 'count': 'Count'}, inplace=True)
+            if output_wc == "Yes":
+                occurences = {tag:count for tag,count in zip(result["Hashtag"].tolist(), result["Count"].tolist())}
+                wc = WordCloud().fit_words(occurences)
+                st.image(wc.to_array(), use_column_width=True,  output_format='PNG')
+            else:
+                fig=px.bar(result, x='Count', y='Hashtag', orientation='h')
+                fig.update_yaxes(autorange="reversed")
+                st.write(fig)
+
     def create_hashtag_network_from_trend(self):
         """
         Analyzes the networks created by common occurences of hashtags

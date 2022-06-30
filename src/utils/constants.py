@@ -15,6 +15,7 @@ ANALYSES_BY_DATA_SOURCE = {
     },
     DATA_SOURCE_TWITTER: {
         'hashtags_per_trend': 'Common hashtags per trend',
+        'most_common_hashtags': 'Common hashtags overall',
         'create_hashtag_network_from_trend': 'Show hashtag network from trend',
         'recent_user_trends': 'Trends of recently created users',
         'bot_trends': 'Trends of (possible) bots',
