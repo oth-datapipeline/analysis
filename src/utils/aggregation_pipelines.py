@@ -255,6 +255,24 @@ def reddit_count_posts_per_user(collection, limit):
         }
     ])
 
+def twitter_valid_dates(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                '_id': 0, 
+                'date': {
+                    '$dateToString': {
+                        'format': '%Y%m%d', 
+                        'date': '$created_at'
+                    }
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$date'
+            }
+        }
+    ])
 
 def twitter_hashtags_per_trend(collection):
     """
@@ -395,7 +413,7 @@ def twitter_hashtag_count_per_usertype(collection, day_predicate):
     ])
 
 
-def twitter_recent_trends(collection):
+def twitter_recent_trends(collection, date):
     """
     Aggregation pipeline for fetching current trends
 
@@ -404,13 +422,15 @@ def twitter_recent_trends(collection):
     :return: result cursor
     :rtype: pymongo.command_cursor.CommandCursor
     """
-    today = datetime.now()
-    delta = timedelta(days=3)
-    start_date = today - delta
+    # today = datetime.now()
+    # delta = timedelta(days=3)
+    # start_date = today - delta
+    _datetime = datetime.fromordinal(date.toordinal())
     return collection.aggregate([
         {
             '$match': {
-                'created_at': { '$gte': start_date }
+                'created_at': { '$gte': _datetime },
+                'created_at': { '$lte': _datetime },
             }
         }, {
             '$group': {

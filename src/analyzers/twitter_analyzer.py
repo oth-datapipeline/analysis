@@ -1,3 +1,4 @@
+from datetime import datetime 
 import networkx as nx
 import itertools
 from pyvis.network import Network
@@ -17,12 +18,23 @@ class TwitterAnalyzer:
     :type mongoclient: pymongo.MongoClient
     """
     static_trend_options = None
+    date_selected = None
+    valid_dates = None
     user_types = {'longtime': 3650, 'recent': 30, 'bot': 1}
 
     def __init__(self, mongoclient):
         self.collection = mongoclient['data']['twitter.tweets']
+        if not TwitterAnalyzer.valid_dates:
+            datestrings_dicts = list(ap.twitter_valid_dates(self.collection))
+            datestrings = list(map(lambda _dict: _dict["_id"], datestrings_dicts))
+            # get strings into list of (year,month,day) as ints
+            year_month_day_list = [(int(datestring[:4]), int(datestring[4:6]), int(datestring[6:])) for datestring in datestrings]
+            dates = list(map(lambda date_triple: datetime(*date_triple), year_month_day_list))
+            TwitterAnalyzer.valid_dates = sorted(dates)
+            # pick most recent valid date as default
+            TwitterAnalyzer.date_selected = TwitterAnalyzer.valid_dates[-1]
         if not TwitterAnalyzer.static_trend_options:
-            trends = list(ap.twitter_recent_trends(self.collection))
+            trends = list(ap.twitter_recent_trends(self.collection, TwitterAnalyzer.date_selected))
             TwitterAnalyzer.static_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends))
 
     def hashtags_per_trend(self):
@@ -37,25 +49,32 @@ class TwitterAnalyzer:
         """
         Analyzes the networks created by common occurences of hashtags
         """
-        trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_trend_options)
-        if st.button('Show'):
-            result = ap.twitter_get_hashtags_for_specific_trend(self.collection, trend)
-            G = nx.Graph()
-            for i, res in enumerate(result):
-                hashtags = res["hashtags"]
-                for hashtag in hashtags:
-                    G.add_node(hashtag)
-                for edge in itertools.combinations(hashtags, 2):
-                    G.add_edge(*edge)
+        TwitterAnalyzer.date_selected = st.date_input("Pick a day to see trends from", min_value=TwitterAnalyzer.valid_dates[0], max_value=TwitterAnalyzer.valid_dates[-1])
+        if datetime.fromordinal(TwitterAnalyzer.date_selected.toordinal()) in TwitterAnalyzer.valid_dates:
+            st.info(f"Top Trends from {TwitterAnalyzer.date_selected}")
+            trends = list(ap.twitter_recent_trends(self.collection, TwitterAnalyzer.date_selected))
+            TwitterAnalyzer.static_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends))
+            trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_trend_options)
+            if st.button('Show'):
+                result = ap.twitter_get_hashtags_for_specific_trend(self.collection, trend)
+                G = nx.Graph()
+                for i, res in enumerate(result):
+                    hashtags = res["hashtags"]
+                    for hashtag in hashtags:
+                        G.add_node(hashtag)
+                    for edge in itertools.combinations(hashtags, 2):
+                        G.add_edge(*edge)
 
-            net = Network("800px", "1500px", heading=trend)
-            net.from_nx(G)
-        
-            html_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'graph.html')
-            net.save_graph(html_location)
-            with open(html_location, 'r', encoding='utf-8') as html_file:
-                components.html(html=html_file.read(), height=800)
-            os.remove(html_location)
+                net = Network("800px", "1500px", heading=trend)
+                net.from_nx(G)
+            
+                html_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'graph.html')
+                net.save_graph(html_location)
+                with open(html_location, 'r', encoding='utf-8') as html_file:
+                    components.html(html=html_file.read(), height=800)
+                os.remove(html_location)
+        else:
+            st.info(f"No entries availabe for {TwitterAnalyzer.date_selected}. Please choose again")
 
     def longtime_user_trends(self):
         """
