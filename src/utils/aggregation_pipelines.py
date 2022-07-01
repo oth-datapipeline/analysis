@@ -510,9 +510,18 @@ def twitter_recent_trends(collection, date):
     _datetime = datetime.fromordinal(date.toordinal())
     return collection.aggregate([
         {
+            '$project': {
+                'year_created': { '$year': "$created_at" },
+                'month_created': { '$month': "$created_at" },
+                'day_created': { '$dayOfMonth': "$created_at" },
+                'trend': 1
+            }
+        },
+        {
             '$match': {
-                'created_at': { '$gte': _datetime },
-                'created_at': { '$lte': _datetime },
+                'year_created': _datetime.year,
+                'month_created': _datetime.month,
+                'day_created': _datetime.day
             }
         }, {
             '$group': {
