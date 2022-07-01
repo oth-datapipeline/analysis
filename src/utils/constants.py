@@ -29,6 +29,9 @@ ANALYSES_BY_DATA_SOURCE = {
         'headline_stats_per_feed_source': 'Headlines per news source',
         'headline_relative_occurences': 'Influential Topics in Headlines per source',
         'tags_per_source': 'Most common Keywords (tags) per news source'
+    },
+    DATA_SOURCE_COMBINED: {
+        'compare_profanity_score_reddit_twitter': 'Compare profanity scores between Reddit and Twitter'
     }
 }
 

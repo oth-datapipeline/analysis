@@ -256,6 +256,26 @@ def reddit_count_posts_per_user(collection, limit):
     ])
 
 
+def reddit_get_all_comments(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                '_id': 0, 
+                'comment': '$comments'
+            }
+        }, {
+            '$unwind': {
+                'path': '$comment'
+            }
+        }, 
+        {
+            '$project': {
+                'text': '$comment.text'
+            }
+        }
+    ])
+
+
 def twitter_hashtags_per_trend(collection):
     """
     Aggregation pipeline for hashtags_per_trend
@@ -389,6 +409,7 @@ def twitter_recent_trends(collection):
             }
         }
     ])
+
 
 def rss_publication_stats(collection):
     return collection.aggregate([
