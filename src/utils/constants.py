@@ -29,6 +29,11 @@ ANALYSES_BY_DATA_SOURCE = {
         'headline_stats_per_feed_source': 'Headlines per news source',
         'headline_relative_occurences': 'Influential Topics in Headlines per source',
         'tags_per_source': 'Most common Keywords (tags) per news source'
+    }, 
+    DATA_SOURCE_COMBINED: {
+        'keyword_frequency_twitter': 'Occurrences of Twitter trends in news article',
+        'keyword_frequency_reddit': 'Occurrences of Reddit keywords in news article',
+        'sentiment_analysis': 'Comparison of sentiment in posts and tweets among Reddit and Twitter'
     }
 }
 
