@@ -577,3 +577,426 @@ def rss_headlines(collection):
                 }
             }
         ])
+
+def upserting_combined_analysis_for_twitter(collection):
+    """
+    Aggregation pipeline for filling the collection 'combined_keyword_analysis' from Twitter
+
+    :param collection: MongoDB collection for twitter tweets
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate(
+        [
+            {
+                '$addFields': {
+                    'trend_and_hashtags': {
+                        '$concatArrays': [
+                            [
+                                {
+                                    '$ltrim': {
+                                        'input': '$trend', 
+                                        'chars': '#'
+                                    }
+                                }
+                            ], '$hashtags'
+                        ]
+                    }
+                }
+            }, {
+                '$project': {
+                    'created_at_trunc': {
+                        '$dateFromParts': {
+                            'year': {
+                                '$year': '$created_at'
+                            }, 
+                            'month': {
+                                '$month': '$created_at'
+                            }, 
+                            'day': {
+                                '$dayOfMonth': '$created_at'
+                            }
+                        }
+                    }, 
+                    'trend_and_hashtags': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$trend_and_hashtags'
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': {
+                            '$toLower': '$trend_and_hashtags'
+                        }, 
+                        'date': '$created_at_trunc', 
+                        'source': 'twitter'
+                    }, 
+                    'ids': {
+                        '$addToSet': '$_id'
+                    }
+                }
+            }, {
+                '$project': {
+                    'count': {
+                        '$size': '$ids'
+                    }
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gte': 10
+                    }
+                }
+            }, {
+                '$merge': {
+                    'into': {
+                        'db': 'analysis',
+                        'coll': 'combined_keyword_analysis'
+                    },
+                    'on': '_id', 
+                    'whenMatched': 'replace', 
+                    'whenNotMatched': 'insert'
+                }
+            }
+        ]
+    )
+
+def upserting_combined_analysis_for_reddit(collection):
+    """
+    Aggregation pipeline for filling the collection 'combined_keyword_analysis' from Reddit
+
+    :param collection: MongoDB collection for reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate(
+        [
+            {
+                '$project': {
+                    'created_trunc': {
+                        '$dateFromParts': {
+                            'year': {
+                                '$year': '$created'
+                            }, 
+                            'month': {
+                                '$month': '$created'
+                            }, 
+                            'day': {
+                                '$dayOfMonth': '$created'
+                            }
+                        }
+                    }, 
+                    'keywords': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$keywords'
+                }
+            }, {
+                '$match': {
+                    'keywords': {
+                        '$ne': ''
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': {
+                            '$toLower': '$keywords'
+                        }, 
+                        'date': '$created_trunc', 
+                        'source': 'reddit'
+                    }, 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gte': 3
+                    }
+                }
+            }, {
+                '$merge': {
+                    'into': {
+                        'db': 'analysis',
+                        'coll': 'combined_keyword_analysis'
+                    }, 
+                    'on': '_id', 
+                    'whenMatched': 'replace', 
+                    'whenNotMatched': 'insert'
+                }
+            }
+        ]
+    )
+
+def upserting_combined_analysis_for_rss(collection):
+    """
+    Aggregation pipeline for filling the collection 'combined_keyword_analysis' from RSS
+
+    :param collection: MongoDB collection for rss articles
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate(
+        [
+            {
+                '$project': {
+                    'published': 1, 
+                    'type': {
+                        '$type': '$published'
+                    }, 
+                    'tags': 1
+                }
+            }, {
+                '$match': {
+                    'published': {
+                        '$ne': None
+                    }, 
+                    'type': 'date'
+                }
+            }, {
+                '$project': {
+                    'published_trunc': {
+                        '$dateFromParts': {
+                            'year': {
+                                '$year': '$published'
+                            }, 
+                            'month': {
+                                '$month': '$published'
+                            }, 
+                            'day': {
+                                '$dayOfMonth': '$published'
+                            }
+                        }
+                    }, 
+                    'tags': 1
+                }
+            }, {
+                '$unwind': {
+                    'path': '$tags'
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': {
+                            '$toLower': '$tags'
+                        }, 
+                        'date': '$published_trunc', 
+                        'source': 'rss'
+                    }, 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$match': {
+                    'count': {
+                        '$gte': 3
+                    }
+                }
+            }, {
+                '$merge': {
+                    'into': {
+                        'db': 'analysis',
+                        'coll': 'combined_keyword_analysis'
+                    }, 
+                    'on': '_id', 
+                    'whenMatched': 'replace', 
+                    'whenNotMatched': 'insert'
+                }
+            }
+        ]
+    )
+
+def keywords_in_news_article(collection, source):
+    assert source in ['twitter', 'reddit']
+    return collection.aggregate(
+        [
+            {
+                '$match': {
+                    '_id.source': {
+                        '$in': [
+                            source, 'rss'
+                        ]
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'keyword': '$_id.keyword', 
+                        'date': '$_id.date'
+                    }, 
+                    'count_sources': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$match': {
+                    'count_sources': 2
+                }
+            }, {
+                '$group': {
+                    '_id': '$_id.keyword', 
+                    'count_dates': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$match': {
+                    'count_dates': {
+                        '$gte': 3
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0, 
+                    'keyword': '$_id'
+                }
+            }, {
+                '$sort': {
+                    'keyword': 1
+                }
+            }
+        ]
+    )
+
+def keyword_frequency_in_news_article(collection, keyword, source):
+    assert source in ['twitter', 'reddit']
+    return collection.aggregate(
+        [
+            {
+                '$match': {
+                    '_id.keyword': keyword,
+                    '_id.source': {'$in': [source, 'rss']}
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'date': '$_id.date',
+                    'source': '$_id.source',
+                    'count': '$count'
+                }
+            }
+        ]
+    )
+
+def sentiment_analysis(collection):
+    return collection.aggregate(
+        [
+            {
+                '$match': {
+                    'sentiment.compound': {
+                        '$exists': True
+                    }
+                }
+            }, {
+                '$project': {
+                    'bucket': {
+                        '$switch': {
+                            'branches': [
+                                {
+                                    'case': {
+                                        '$lt': [
+                                            '$sentiment.compound', -0.05
+                                        ]
+                                    }, 
+                                    'then': 'negative'
+                                }, {
+                                    'case': {
+                                        '$gt': [
+                                            '$sentiment.compound', 0.05
+                                        ]
+                                    }, 
+                                    'then': 'positive'
+                                }
+                            ], 
+                            'default': 'neutral'
+                        }
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$bucket', 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'bucket': '$_id', 
+                    'count': '$count'
+                }
+            }, {
+                '$sort': {
+                    'bucket': 1
+                }
+            }
+        ]
+    )
+
+def sentiment_analysis_comments(collection):
+    return collection.aggregate(
+        [
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$match': {
+                    'comments.sentiment.compound': {
+                        '$exists': True
+                    }
+                }
+            }, {
+                '$project': {
+                    'bucket': {
+                        '$switch': {
+                            'branches': [
+                                {
+                                    'case': {
+                                        '$lt': [
+                                            '$comments.sentiment.compound', -0.05
+                                        ]
+                                    }, 
+                                    'then': 'negative'
+                                }, {
+                                    'case': {
+                                        '$gt': [
+                                            '$comments.sentiment.compound', 0.05
+                                        ]
+                                    }, 
+                                    'then': 'positive'
+                                }
+                            ], 
+                            'default': 'neutral'
+                        }
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$bucket', 
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'bucket': '$_id', 
+                    'count': '$count'
+                }
+            }, {
+                '$sort': {
+                    'bucket': 1
+                }
+            }
+        ]
+    )
