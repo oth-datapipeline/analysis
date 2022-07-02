@@ -45,6 +45,95 @@ def reddit_comment_length_per_subreddit(collection):
         }
     ])
 
+def reddit_top_posts(collection, limit):
+    return collection.aggregate([
+        {
+            '$project': {
+                'title': 1, 
+                'id': 1, 
+                'reddit.subreddit': 1, 
+                'score': 1
+            }
+        }, {
+            '$group': {
+                '_id': {
+                    'title': '$title', 
+                    'id': '$id', 
+                    'subreddit': '$reddit.subreddit'
+                }, 
+                'score': {
+                    '$max': '$score'
+                }
+            }
+        }, {
+            '$sort': {
+                'score': -1
+            }
+        }, {
+            '$limit': limit
+        }, {
+            '$project': {
+                '_id': 0, 
+                'title': '$_id.title', 
+                'subreddit': '$_id.subreddit', 
+                'score': '$score'
+            }
+        }
+    ])
+
+
+def reddit_controversial_posts(collection, limit):
+    return collection.aggregate([
+        {
+            '$project': {
+                'title': 1, 
+                'id': 1, 
+                'reddit.subreddit': 1, 
+                'upvote_ratio': 1
+            }
+        }, {
+            '$group': {
+                '_id': {
+                    'title': '$title', 
+                    'id': '$id', 
+                    'subreddit': '$reddit.subreddit'
+                }, 
+                'upvote_ratio': {
+                    '$min': '$upvote_ratio'
+                }
+            }
+        }, {
+            '$sort': {
+                'upvote_ratio': 1
+            }
+        }, {
+            '$limit': limit
+        }, {
+            '$project': {
+                '_id': 0, 
+                'title': '$_id.title', 
+                'subreddit': '$_id.subreddit', 
+                'upvote_ratio': '$upvote_ratio'
+            }
+        }
+    ])
+
+def reddit_upvote_ratios(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'upvote_ratio': 1, 
+                'reddit.subreddit': 1
+            }
+        }, {
+            '$group': {
+                '_id': '$reddit.subreddit', 
+                'upvote_ratio': {
+                    '$avg': '$upvote_ratio'
+                }
+            }
+        }
+    ])
 
 def reddit_keyword_per_subreddit(collection, subreddit):
     """

@@ -6,12 +6,15 @@ DATA_SOURCE_COMBINED = 'Combined'
 # Mapping from analysis labels in the selectbox to the methods of the analyzers
 ANALYSES_BY_DATA_SOURCE = {
     DATA_SOURCE_REDDIT: {
+        'top_posts': 'Reddit Posts with highest score',
+        'most_controversial_posts': 'Most controversial Reddit Posts',
+        'subreddit_upvote_ratios': 'Average Upvote ratios per Subreddit',
         'comment_length_per_subreddit': 'Average comment length per subreddit',
         'keyword_per_subreddit': 'Most occurring keywords per subreddit',
         'distribution_number_comments_per_user': 'Distribution of number of comments per user',
         'distribution_number_posts_per_user': 'Distribution of number of posts per user',
         'frequently_used_news_sources': 'Frequently used news sources',
-        'count_posts_per_user': 'Most active users',
+        'count_posts_per_user': 'Most active users'
     },
     DATA_SOURCE_TWITTER: {
         'most_common_hashtags': 'Common hashtags overall',
