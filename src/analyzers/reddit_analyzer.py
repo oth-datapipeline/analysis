@@ -69,6 +69,13 @@ class RedditAnalyzer:
             result = pd.DataFrame(result[:limit])
             st.table(result)
 
+    def score_dist_by_hour(self):
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.reddit_score_by_hour(self.collection)))
+            result.rename(columns={"hour": "Hour", "score": "Score"}, inplace=True)
+            fig=px.bar(result, x='Hour', y='Score', orientation='v')
+            st.write(fig)
+
     def distribution_number_comments_per_user(self):
         """
         Analyzes the distribution of comments over users (top commentors vs. inactive commentors)

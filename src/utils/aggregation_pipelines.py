@@ -118,6 +118,35 @@ def reddit_controversial_posts(collection, limit):
         }
     ])
 
+def reddit_score_by_hour(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'score': 1, 
+                'hour_created': {
+                    '$hour': '$created'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$hour_created', 
+                'score': {
+                    '$avg': '$score'
+                }
+            }
+        }, {
+            '$sort': {
+                '_id': 1
+            }
+        }, {
+            '$project': {
+                '_id': 0, 
+                'hour': '$_id', 
+                'score': 1
+            }
+        }
+    ])
+
 def reddit_upvote_ratios(collection):
     return collection.aggregate([
         {

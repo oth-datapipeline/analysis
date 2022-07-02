@@ -14,7 +14,8 @@ ANALYSES_BY_DATA_SOURCE = {
         'distribution_number_comments_per_user': 'Distribution of number of comments per user',
         'distribution_number_posts_per_user': 'Distribution of number of posts per user',
         'frequently_used_news_sources': 'Frequently used news sources',
-        'count_posts_per_user': 'Most active users'
+        'count_posts_per_user': 'Most active users',
+        'score_dist_by_hour': 'Average Post Score by hour'
     },
     DATA_SOURCE_TWITTER: {
         'most_common_hashtags': 'Common hashtags overall',
