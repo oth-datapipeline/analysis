@@ -851,7 +851,7 @@ def keywords_in_news_article(collection, source):
             }, {
                 '$match': {
                     'count_dates': {
-                        '$gte': 5
+                        '$gte': 3
                     }
                 }
             }, {
