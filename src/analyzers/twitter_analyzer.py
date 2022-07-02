@@ -100,7 +100,6 @@ class TwitterAnalyzer:
             if st.form_submit_button("Confirm Date"): 
                 trends = list(ap.twitter_recent_trends(self.collection, TwitterAnalyzer.date_selected))
                 TwitterAnalyzer.static_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends))
-        # if datetime.fromordinal(TwitterAnalyzer.date_selected.toordinal()) in TwitterAnalyzer.valid_dates:
         st.info(f"Top Trends from {TwitterAnalyzer.date_selected}")
         if not TwitterAnalyzer.static_trend_options:
             st.warning(f"No Trends available for {TwitterAnalyzer.date_selected}. Please choose another date.")
@@ -123,8 +122,6 @@ class TwitterAnalyzer:
             with open(html_location, 'r', encoding='utf-8') as html_file:
                 components.html(html=html_file.read(), height=800)
             os.remove(html_location)
-        # else:
-        #     st.info(f"No entries availabe for {TwitterAnalyzer.date_selected}. Please choose again")
 
     def longtime_user_trends(self):
         """
