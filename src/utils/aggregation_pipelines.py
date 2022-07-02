@@ -607,7 +607,7 @@ def twitter_trends_of_geodata_tweets(collection):
 ])
 
 
-def twitter_geodata_createdat_by_trend(collection, trend):
+def twitter_tweets_with_geodata_by_trend(collection, trend):
     return collection.aggregate([
         {
             '$match': {
@@ -616,6 +616,23 @@ def twitter_geodata_createdat_by_trend(collection, trend):
                 },
                 'trend': {
                     '$eq': trend
+                }
+            }
+        }, {
+            '$project': {
+                'created_at': '$created_at',
+                'geo': '$geo',
+                'user': '$author.username'
+            }
+        }
+    ])
+
+def twitter_all_tweets_with_geodata(collection):
+    return collection.aggregate([
+        {
+            '$match': {
+                'geo': {
+                    '$exists': True
                 }
             }
         }, {
