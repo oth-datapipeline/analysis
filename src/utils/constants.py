@@ -31,7 +31,7 @@ ANALYSES_BY_DATA_SOURCE = {
         'replies_by_membership_duration': 'Average number of Replies aggregated by membership duration',
         'retweets_by_membership_duration': 'Average number of Retweets aggregated by membership duration',
         'quoted_by_membership_duration': 'Average number of Quotations aggregated by membership duration',
-        'verified_by_membership_duration': 'Percentag of verified Users aggregated by membership duration'
+        'verified_by_membership_duration': 'Percentage of verified Users aggregated by membership duration'
     }, 
     DATA_SOURCE_RSS: {
         'publication_stats': 'Number of published articles for the most active sources',
