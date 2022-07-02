@@ -37,7 +37,7 @@ class TwitterAnalyzer:
 
     def create_hashtag_network_from_trend(self):
         """
-        Analyzes
+        Based on trend creates a hashtag network
         """
         trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_trend_options)
         if st.button('Show'):
@@ -60,6 +60,9 @@ class TwitterAnalyzer:
             os.remove(html_location)
 
     def profanity_like_correlation(self):
+        """
+        Analyzes the (cor-)relation between tweet profanity, i.e. use of cursewords, and like count.
+        """
         if st.button('Show'):
 
             tweets = list(ap.twitter_tweets_with_likes(self.collection))
@@ -79,6 +82,9 @@ class TwitterAnalyzer:
             st.write(fig)
 
     def links_tweet_share(self):
+        """
+        Analyzes the share of link tweets (videos, images, etc.) in comparison to total tweets.
+        """
         if st.button('Show'):
             result = list(ap.twitter_tweets_with_links(self.collection))
             tweet_total = self.collection.estimated_document_count()
@@ -97,6 +103,9 @@ class TwitterAnalyzer:
             st.write(fig)
 
     def tweet_sentiment_analysis(self):
+        """
+        Analyzes overall sentiment in tweet data.
+        """
         if st.button('Show'):
             tweets = list(ap.sentiment_analysis(self.collection))
 
@@ -116,6 +125,9 @@ class TwitterAnalyzer:
             st.write(fig)
 
     def tweets_trends_on_map(self):
+        """
+        Creates a map with markers per twitter user based on their tweets regarding a specific trend.
+        """
         trends_with_geodata = ap.twitter_trends_of_geodata_tweets(self.collection)
         TwitterAnalyzer.static_geodata_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends_with_geodata))
         trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_geodata_trend_options)

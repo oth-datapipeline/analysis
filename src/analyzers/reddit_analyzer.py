@@ -100,6 +100,9 @@ class RedditAnalyzer:
             st.table(result)
 
     def reddit_posts_comment_sentiment_analysis(self):
+        """
+        Analyzes overall sentiment for all submissions and their respective comments across all scraped reddit data.
+        """
         if st.button('Show'):
             reddit_posts = list(ap.sentiment_analysis(self.collection))
             reddit_comments = list(ap.reddit_sentiment_analysis_comments(self.collection))
