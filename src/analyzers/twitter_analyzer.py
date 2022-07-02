@@ -1,4 +1,3 @@
-from matplotlib import pyplot as plt
 import networkx as nx
 import itertools
 from pyvis.network import Network
@@ -9,6 +8,7 @@ import os
 import pandas as pd
 from profanity_check import predict_prob
 import plotly.express as px
+import plotly.graph_objects as pgo
 
 
 class TwitterAnalyzer:
@@ -19,6 +19,7 @@ class TwitterAnalyzer:
     :type mongoclient: pymongo.MongoClient
     """
     static_trend_options = None
+    static_geodata_trend_options = None
 
     def __init__(self, mongoclient):
         self.collection = mongoclient['data']['twitter.tweets']
@@ -83,10 +84,6 @@ class TwitterAnalyzer:
             tweet_total = self.collection.estimated_document_count()
             total_count = { "total_count": tweet_total }
             result.append(total_count)
-            
-            # counts = [ result[0]["like_count"], tweet_total ]
-            # labels = [ "likes", "total" ]
-            # content = [counts, labels]
 
             content = [
                 {"count": result[0]["like_count"], "label": "Link Tweets"},
@@ -98,3 +95,45 @@ class TwitterAnalyzer:
 
             fig = px.pie(df, values="count", names="label")
             st.write(fig)
+
+    def tweet_sentiment_analysis(self):
+        if st.button('Show'):
+            tweets = list(ap.sentiment_analysis(self.collection))
+
+            all_tweets = 0
+            for bucket in tweets:
+                all_tweets += bucket['count']
+
+            result = {'negative': {}, 'neutral': {}, 'positive': {}}
+
+            for bucket in tweets:
+                result[bucket['bucket']]['Twitter tweets'] = bucket['count'] / all_tweets
+
+            df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
+            print(df_result)
+
+            fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
+            st.write(fig)
+
+    def tweets_trends_on_map(self):
+        trends_with_geodata = ap.twitter_trends_of_geodata_tweets(self.collection)
+        TwitterAnalyzer.static_geodata_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends_with_geodata))
+        trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_geodata_trend_options)
+        
+        if st.button('Show'):
+            tweets = list(ap.twitter_geodata_createdat_by_trend(self.collection, trend))
+            for tweet in tweets:
+                tweet['long'] = tweet['geo']['long']
+                tweet['lat'] = tweet['geo']['lat']
+                tweet.pop('geo')
+            print(tweets)
+            df = pd.DataFrame(tweets)
+            fig = pgo.Figure(data=pgo.Scattergeo(
+                lon = df['long'],
+                lat = df['lat'],
+                text = df['user'],
+                mode = 'markers'
+            ))
+            st.write(fig)
+
+        

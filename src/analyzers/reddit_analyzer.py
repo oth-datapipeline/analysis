@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import utils.constants as const
+import plotly.express as px
 
 # There is a known issue with matplotlib and streamlit, see https://docs.streamlit.io/streamlit-cloud/troubleshooting#limitations-and-known-issues
 # Using locks for every figure fixes this issue when running the streamlit app in a Docker environment; running locally there seems to be no issue
@@ -97,3 +98,30 @@ class RedditAnalyzer:
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_count_posts_per_user(self.collection, limit)))
             st.table(result)
+
+    def reddit_posts_comment_sentiment_analysis(self):
+        if st.button('Show'):
+            reddit_posts = list(ap.sentiment_analysis(self.collection))
+            reddit_comments = list(ap.reddit_sentiment_analysis_comments(self.collection))
+
+            all_posts = 0
+            for bucket in reddit_posts:
+                all_posts += bucket['count']
+
+            all_comments = 0
+            for bucket in reddit_comments:
+                all_comments += bucket['count']
+
+            result = {'negative': {}, 'neutral': {}, 'positive': {}}
+
+            for bucket in reddit_posts:
+                result[bucket['bucket']]['Reddit posts'] = bucket['count'] / all_posts
+
+            for bucket in reddit_comments:
+                result[bucket['bucket']]['Reddit comments'] = bucket['count'] / all_comments
+
+            df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
+            print(df_result)
+
+            fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
+            st.write(fig)

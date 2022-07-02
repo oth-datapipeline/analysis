@@ -12,12 +12,15 @@ ANALYSES_BY_DATA_SOURCE = {
         'distribution_number_posts_per_user': 'Distribution of number of posts per user',
         'frequently_used_news_sources': 'Frequently used news sources',
         'count_posts_per_user': 'Most active users',
+        'reddit_posts_comment_sentiment_analysis': 'Sentiment analysis of all posts and comments'
     },
     DATA_SOURCE_TWITTER: {
         'hashtags_per_trend': 'Common hashtags per trend',
         'create_hashtag_network_from_trend': 'Show hashtag network from trend',
         'profanity_like_correlation': 'Correlation between profanity of tweets and their likes',
-        'links_tweet_share': 'Share of link tweets in total tweets'
+        'links_tweet_share': 'Share of link tweets in total tweets',
+        'tweet_sentiment_analysis': 'Sentiment analysis of all tweets',
+        'tweets_trends_on_map': 'Show geolocation of Twitter users by trend'
     }, 
     DATA_SOURCE_RSS: {
         'publication_stats': 'Number of published articles for the most active sources',
