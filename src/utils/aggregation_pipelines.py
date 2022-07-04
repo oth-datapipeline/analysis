@@ -259,18 +259,14 @@ def reddit_count_posts_per_user(collection, limit):
 def reddit_get_all_comments(collection):
     return collection.aggregate([
         {
-            '$project': {
-                '_id': 0, 
-                'comment': '$comments'
-            }
-        }, {
             '$unwind': {
-                'path': '$comment'
+                'path': '$comments'
             }
         }, 
         {
             '$project': {
-                'text': '$comment.text'
+                '_id': 0,
+                'text': '$comments.text'
             }
         }
     ])

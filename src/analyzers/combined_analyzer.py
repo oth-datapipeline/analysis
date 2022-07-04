@@ -1,35 +1,21 @@
+from math import fabs
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import utils.aggregation_pipelines as ap
-from profanity_check import predict_prob
 import streamlit as st
 import pandas as pd
+from utils.helper_functions import get_profanity_distribution
 
 class CombinedAnalyzer:
 
     def __init__(self, mongoclient):
         self.rss_collection = mongoclient['data']['rss.articles']
         self.twitter_collection = mongoclient['data']['twitter.tweets']
-        self.reddit_collection = mongoclient['data']['reddit.posts']    
-
-    def compare_profanity_score_reddit_twitter(self):
-        if st.button('Show'):
-            # tweets = pd.DataFrame(self.twitter_collection.find({}, {'_id': 0, 'text': 1}))
-            # tweets['profanity'] = predict_prob(tweets['text'])
-            # tweets.drop('text', axis=1, inplace=True)
-            # tweets['category'] = pd.cut(tweets['profanity'], [0, 0.25, 0.5, 0.75, 1])
-            # num_tweets_by_profanity_category = tweets.groupby(by='category').count()
-            # tweet_fractions = tweets['category'].value_counts(normalize=True)
-
-            reddit_comments = pd.DataFrame(ap.reddit_get_all_comments(self.reddit_collection))
-            reddit_comments['profanity'] = predict_prob(reddit_comments['text'])
-            reddit_comments.dropna(inplace=True)
-            reddit_comments['category'] = pd.cut(reddit_comments['profanity'], [0, 0.25, 0.5, 0.75, 1])
-            print(reddit_comments['category'])
-            # reddit_fractions = reddit_comments['category'].value_counts(normalize=True)
+        self.reddit_collection = mongoclient['data']['reddit.posts']
+        self.combined_keyword_collection = mongoclient['analysis']['combined_keyword_analysis']
 
     def keyword_frequency_twitter(self):
         keywords = [k['keyword'] for k in list(ap.keywords_in_news_article(self.combined_keyword_collection, source='twitter'))]
@@ -107,4 +93,35 @@ class CombinedAnalyzer:
             df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
             print(df_result)
             fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
+            st.write(fig)
+
+    def compare_profanity_score_reddit_twitter(self):
+        include_reddit_comments = st.checkbox('Include Reddit comments (Note: long runtime)')
+        if st.button('Show'):
+            fig = go.Figure()
+            categories = ['(0.0, 0.25]', '(0.25, 0.5]', '(0.5, 0.75]', '(0.75, 1.0]']
+            tweets = pd.DataFrame(self.twitter_collection.find({}, {'_id': 0, 'text': 1}))
+            tweet_distribution = get_profanity_distribution(tweets)
+            fig.add_trace(go.Bar(
+                x=categories,
+                y=tweet_distribution,
+                name='Tweets'
+            ))
+            reddit_posts = pd.DataFrame(self.reddit_collection.find({}, {'_id': 0, 'text': '$title'}))
+            reddit_posts_distribution = get_profanity_distribution(reddit_posts)
+            fig.add_trace(go.Bar(
+                x=categories,
+                y=reddit_posts_distribution,
+                name='Reddit posts'
+            ))
+            if include_reddit_comments:
+                reddit_comments = pd.DataFrame(ap.reddit_get_all_comments(self.reddit_collection))
+                reddit_comments['text'] = reddit_comments['text'].astype('U').values
+                reddit_comments_distribution = get_profanity_distribution(reddit_comments)
+                fig.add_trace(go.Bar(
+                    x=categories,
+                    y=reddit_comments_distribution,
+                    name='Reddit comments'
+                ))
+            fig.update_layout(barmode='group')
             st.write(fig)
