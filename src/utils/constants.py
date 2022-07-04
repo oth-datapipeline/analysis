@@ -6,7 +6,7 @@ DATA_SOURCE_COMBINED = 'Combined'
 # Mapping from analysis labels in the selectbox to the methods of the analyzers
 ANALYSES_BY_DATA_SOURCE = {
     DATA_SOURCE_REDDIT: {
-        'top_posts': 'Reddit Posts with highest score',
+        'top_posts': 'Reddit posts with highest score',
         'most_controversial_posts': 'Most controversial Reddit posts',
         'subreddit_upvote_ratios': 'Average upvote ratios per subreddit',
         'comment_length_per_subreddit': 'Average comment length per subreddit',
