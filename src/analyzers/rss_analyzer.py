@@ -145,11 +145,13 @@ class RssAnalyzer:
         """
         data = ap.rss_content(self.collection)
         df = pd.DataFrame(data)
+       
 
         sws = stopwords.words("english")
         tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
         cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
         df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
+        
 
         # vectorizer = TfidfVectorizer()
         vectorizer = HashingVectorizer(n_features=100)

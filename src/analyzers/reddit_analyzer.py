@@ -6,6 +6,7 @@ import plotly.express as px
 from wordcloud import WordCloud
 
 
+
 class RedditAnalyzer:
     """
     Analyzes collected reddit posts, comments and users
@@ -15,6 +16,34 @@ class RedditAnalyzer:
     """
     def __init__(self, mongoclient):
         self.collection = mongoclient['data']['reddit.posts']
+
+    def top_posts(self):
+        """
+        Analyzes which are the top reddit posts in our database
+        """
+        limit = int(st.text_input("Limit", value="100"))
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.reddit_top_posts(self.collection, limit)))
+            st.table(result)
+
+    def most_controversial_posts(self):
+        """
+        Analyzes the most controversial posts by searching for the lowest upvote_ratios
+        """
+        limit = int(st.text_input("Limit", value="100"))
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.reddit_controversial_posts(self.collection, limit)))
+            st.table(result)
+
+    def subreddit_upvote_ratios(self):
+        """
+        Analyzes the average upvote ratios for each subreddit 
+        """
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.reddit_upvote_ratios(self.collection))).sort_values(by=["upvote_ratio"], ascending=False)
+            result.rename(columns={'_id': "Subreddit", 'upvote_ratio': 'Average Upvote Ratio'}, inplace=True)
+            fig=px.bar(result, x='Subreddit', y='Average Upvote Ratio', orientation='v')
+            st.write(fig)
 
     def comment_length_per_subreddit(self):
         """
@@ -47,6 +76,13 @@ class RedditAnalyzer:
                 fig = px.bar(result[:limit], x='Number of occurrences', y='Keyword', orientation='h')
                 fig.update_yaxes(autorange='reversed')
                 st.write(fig)
+
+    def score_dist_by_hour(self):
+        if st.button('Show'):
+            result = pd.DataFrame(list(ap.reddit_score_by_hour(self.collection)))
+            result.rename(columns={"hour": "Hour", "score": "Score"}, inplace=True)
+            fig=px.bar(result, x='Hour', y='Score', orientation='v')
+            st.write(fig)
 
     def distribution_number_comments_per_user(self):
         """
