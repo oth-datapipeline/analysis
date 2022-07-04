@@ -5,8 +5,6 @@ import utils.constants as const
 import plotly.express as px
 from wordcloud import WordCloud
 
-
-
 class RedditAnalyzer:
     """
     Analyzes collected reddit posts, comments and users
@@ -21,7 +19,7 @@ class RedditAnalyzer:
         """
         Analyzes which are the top reddit posts in our database
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_top_posts(self.collection, limit)))
             st.table(result)
@@ -30,7 +28,7 @@ class RedditAnalyzer:
         """
         Analyzes the most controversial posts by searching for the lowest upvote_ratios
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_controversial_posts(self.collection, limit)))
             st.table(result)
@@ -125,8 +123,37 @@ class RedditAnalyzer:
         """
         limit = int(st.text_input(label='Limit', value='30'))
         if st.button('Show'):
-            result = pd.DataFrame(list(ap.reddit_count_posts_per_user(self.collection, limit))).sort_values(by='num_posts', ascending=False)
+            result = pd.DataFrame(list(ap.reddit_count_posts_per_user(self.collection, limit)))
             result.rename(columns={'_id': 'Username', 'num_posts': 'Number of posts'}, inplace=True)
             fig = px.bar(result, x='Number of posts', y='Username', orientation='h')
             fig.update_yaxes(autorange='reversed')
+            st.write(fig)
+
+    def reddit_posts_comment_sentiment_analysis(self):
+        """
+        Analyzes overall sentiment for all submissions and their respective comments across all scraped reddit data.
+        """
+        if st.button('Show'):
+            reddit_posts = list(ap.sentiment_analysis(self.collection))
+            reddit_comments = list(ap.reddit_sentiment_analysis_comments(self.collection))
+
+            all_posts = 0
+            for bucket in reddit_posts:
+                all_posts += bucket['count']
+
+            all_comments = 0
+            for bucket in reddit_comments:
+                all_comments += bucket['count']
+
+            result = {'negative': {}, 'neutral': {}, 'positive': {}}
+
+            for bucket in reddit_posts:
+                result[bucket['bucket']]['Reddit posts'] = bucket['count'] / all_posts
+
+            for bucket in reddit_comments:
+                result[bucket['bucket']]['Reddit comments'] = bucket['count'] / all_comments
+
+            df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
+
+            fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
             st.write(fig)
