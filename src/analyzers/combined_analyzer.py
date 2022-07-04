@@ -1,10 +1,13 @@
-from matplotlib.pyplot import title
+from math import fabs
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import utils.aggregation_pipelines as ap
+import streamlit as st
+import pandas as pd
+from utils.helper_functions import get_profanity_distribution
 
 class CombinedAnalyzer:
 
@@ -13,6 +16,7 @@ class CombinedAnalyzer:
         self.twitter_collection = mongoclient['data']['twitter.tweets']
         self.reddit_collection = mongoclient['data']['reddit.posts']
         self.combined_keyword_collection = mongoclient['analysis']['combined_keyword_analysis']
+        self.reddit_comments_collection = mongoclient['analysis']['reddit_comments']
 
     def keyword_frequency_twitter(self):
         keywords = [k['keyword'] for k in list(ap.keywords_in_news_article(self.combined_keyword_collection, source='twitter'))]
@@ -90,6 +94,36 @@ class CombinedAnalyzer:
             df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
             print(df_result)
             fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
+            st.write(fig)
+
+
+    def compare_profanity_score_reddit_twitter(self):
+        if st.button('Show'):
+            fig = go.Figure()
+            categories = ['(0.0, 0.25]', '(0.25, 0.5]', '(0.5, 0.75]', '(0.75, 1.0]']
+            tweets = pd.DataFrame(self.twitter_collection.find({}, {'_id': 0, 'text': 1}))
+            tweet_distribution = get_profanity_distribution(tweets)
+            fig.add_trace(go.Bar(
+                x=categories,
+                y=tweet_distribution,
+                name='Tweets'
+            ))
+            reddit_posts = pd.DataFrame(self.reddit_collection.find({}, {'_id': 0, 'text': '$title'}))
+            reddit_posts_distribution = get_profanity_distribution(reddit_posts)
+            fig.add_trace(go.Bar(
+                x=categories,
+                y=reddit_posts_distribution,
+                name='Reddit posts'
+            ))
+            reddit_comments = pd.DataFrame(self.reddit_comments_collection.find({}, {'_id': 0, 'comment': 1}))
+            reddit_comments['text'] = reddit_comments['comment'].astype('U').values
+            reddit_comments_distribution = get_profanity_distribution(reddit_comments)
+            fig.add_trace(go.Bar(
+                x=categories,
+                y=reddit_comments_distribution,
+                name='Reddit comments'
+            ))
+            fig.update_layout(barmode='group', xaxis_title='Profanity score', yaxis_title='Percentage')
             st.write(fig)
 
     def activity_by_hour(self):
