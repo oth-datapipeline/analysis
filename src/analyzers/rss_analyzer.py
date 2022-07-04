@@ -6,7 +6,6 @@ from wordcloud import WordCloud
 import numpy as np
 import nltk
 import re
-from pymongo import MongoClient
 import itertools
 
 from sklearn.feature_extraction.text import HashingVectorizer
@@ -16,6 +15,7 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 from collections import Counter, defaultdict
+
 
 class RssAnalyzer:
 
@@ -79,7 +79,6 @@ class RssAnalyzer:
                 cols = cols[-2:] + cols[:-2]
                 result = result[cols]
                 st.table(result)
-            
 
     def tag_similarity(self):
         """
@@ -146,11 +145,13 @@ class RssAnalyzer:
         """
         data = ap.rss_content(self.collection)
         df = pd.DataFrame(data)
+       
 
         sws = stopwords.words("english")
         tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
         cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
         df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
+        
 
         # vectorizer = TfidfVectorizer()
         vectorizer = HashingVectorizer(n_features=100)
