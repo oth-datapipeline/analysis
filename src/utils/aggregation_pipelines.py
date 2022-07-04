@@ -586,7 +586,7 @@ def twitter_tweet_sentiments(collection):
         }
     ])
 
-def twitter_geodata_createdat_by_trend(collection):
+def twitter_all_tweets_with_geodata(collection):
     return collection.aggregate([
         {
             '$match': {

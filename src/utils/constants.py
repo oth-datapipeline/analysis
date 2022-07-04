@@ -20,7 +20,7 @@ ANALYSES_BY_DATA_SOURCE = {
         'profanity_like_correlation': 'Correlation between profanity of tweets and their likes',
         'links_tweet_share': 'Share of link tweets in total tweets',
         'tweet_sentiment_analysis': 'Sentiment analysis of all tweets',
-        'tweets_trends_on_map': 'Show geolocation of Twitter users'
+        'tweets_overall_on_map': 'Show tweet geolocations on map'
     }, 
     DATA_SOURCE_RSS: {
         'publication_stats': 'Number of published articles for the most active sources',

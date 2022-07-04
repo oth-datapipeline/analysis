@@ -24,13 +24,15 @@ class TwitterAnalyzer:
         self.collection = mongoclient['data']['twitter.tweets']
         if not TwitterAnalyzer.static_trend_options:
             trends = list(ap.twitter_recent_trends(self.collection))
-            TwitterAnalyzer.static_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends))
+            TwitterAnalyzer.static_trend_options = list(
+                map(lambda trend_dict: trend_dict.get('trend'), trends))
 
     def hashtags_per_trend(self):
         """
         Analyzes how many tweets tagged a trend as a hashtag
         """
-        result = pd.DataFrame(list(ap.twitter_hashtags_per_trend(self.collection)))
+        result = pd.DataFrame(
+            list(ap.twitter_hashtags_per_trend(self.collection)))
         if st.button('Show'):
             st.table(result)
 
@@ -38,9 +40,11 @@ class TwitterAnalyzer:
         """
         Based on trend creates a hashtag network
         """
-        trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_trend_options)
+        trend = st.selectbox(
+            label='Trend', options=TwitterAnalyzer.static_trend_options)
         if st.button('Show'):
-            result = ap.twitter_get_hashtags_for_specific_trend(self.collection, trend)
+            result = ap.twitter_get_hashtags_for_specific_trend(
+                self.collection, trend)
             G = nx.Graph()
             for i, res in enumerate(result):
                 hashtags = res["hashtags"]
@@ -51,8 +55,9 @@ class TwitterAnalyzer:
 
             net = Network("800px", "1500px", heading=trend)
             net.from_nx(G)
-        
-            html_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'graph.html')
+
+            html_location = os.path.join(os.path.dirname(
+                os.path.realpath(__file__)), 'graph.html')
             net.save_graph(html_location)
             with open(html_location, 'r', encoding='utf-8') as html_file:
                 components.html(html=html_file.read(), height=800)
@@ -76,8 +81,9 @@ class TwitterAnalyzer:
             grouped_bins_avg_likes = df.groupby(bins)['likes'].mean()
             bin_index = grouped_bins_avg_likes.index.values.astype('str')
 
-            fig=px.bar(grouped_bins_avg_likes, x=bin_index, y="likes")
-            fig.update_layout(xaxis_title="Profanity Scores", yaxis_title="Average Likes")
+            fig = px.bar(grouped_bins_avg_likes, x=bin_index, y="likes")
+            fig.update_layout(xaxis_title="Profanity Scores",
+                              yaxis_title="Average Likes")
             st.write(fig)
 
     def links_tweet_share(self):
@@ -87,7 +93,7 @@ class TwitterAnalyzer:
         if st.button('Show'):
             result = list(ap.twitter_tweets_with_links(self.collection))
             tweet_total = self.collection.estimated_document_count()
-            total_count = { "total_count": tweet_total }
+            total_count = {"total_count": tweet_total}
             result.append(total_count)
 
             content = [
@@ -115,32 +121,36 @@ class TwitterAnalyzer:
             result = {'negative': {}, 'neutral': {}, 'positive': {}}
 
             for bucket in tweets:
-                result[bucket['bucket']]['Twitter tweets'] = bucket['count'] / all_tweets
+                result[bucket['bucket']
+                       ]['Twitter tweets'] = bucket['count'] / all_tweets
 
-            df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
+            df_result = pd.DataFrame(result).reset_index().rename(
+                {'index': 'Sources'}, axis=1)
             print(df_result)
 
-            fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
+            fig = px.bar(df_result, x='Sources', y=[
+                         'negative', 'neutral', 'positive'])
             st.write(fig)
 
-    def tweets_trends_on_map(self):
+
+    def tweets_overall_on_map(self):
         """
-        Creates a map with markers per twitter user based on their tweets regarding a specific trend.
-        """       
+        Creates a map with markers for all geolocations of all tweet data.
+        """
         if st.button('Show'):
-            tweets = list(ap.twitter_geodata_createdat_by_trend(self.collection))
+            tweets = list(ap.twitter_all_tweets_with_geodata(self.collection))
+
             for tweet in tweets:
                 tweet['long'] = tweet['geo']['long']
                 tweet['lat'] = tweet['geo']['lat']
                 tweet.pop('geo')
+            
             df = pd.DataFrame(tweets)
             df['trend'] = df['trend'].apply(lambda trend: trend.lstrip('#'))
             fig = pgo.Figure(data=pgo.Scattergeo(
-                lon = df['long'],
-                lat = df['lat'],
-                text = df['user'] + ": #" + df['trend'],
-                mode = 'markers'
+                lon=df['long'],
+                lat=df['lat'],
+                text=df['user'] + ": #" + df['trend'],
+                mode='markers'
             ))
             st.write(fig)
-
-        
