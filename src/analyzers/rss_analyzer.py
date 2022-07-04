@@ -62,7 +62,7 @@ class RssAnalyzer:
         """
         Analyzes commonly occurring tags of a news source. Output is provided as table or as wordcloud.
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         source = st.selectbox(label='News Source', options=tuple(self.sources))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
@@ -84,7 +84,7 @@ class RssAnalyzer:
         """
         Analyzes the similarity of news articles based on their tags
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = self._tag_similarity_wrapper(ascending=False)
             st.table(result[:limit])
@@ -94,7 +94,7 @@ class RssAnalyzer:
         """
         Analyzes the dissimilarity of news articles based on their tags
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = self._tag_similarity_wrapper(ascending=True)
             st.table(result[:limit])
@@ -115,7 +115,6 @@ class RssAnalyzer:
             union = first_tags.union(second_tags)
             iou_similarity = len(intersection)/len(union)
             rows.append([*pair, iou_similarity])
-        
         result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
 
         result = result.sort_values(by=["Similarity"], ascending=ascending)
@@ -125,7 +124,7 @@ class RssAnalyzer:
         """
         Analyzes the similarity of news articles based on their article content
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = self._content_similarity_wrapper(ascending=False)
             st.table(result[:limit])
@@ -134,7 +133,7 @@ class RssAnalyzer:
         """
         Analyzes the dissimilarity of news articles based on their article content
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = self._content_similarity_wrapper(ascending=True)
             st.table(result[:limit])
@@ -143,37 +142,41 @@ class RssAnalyzer:
         """
         Helper function for content_similarity and content_dissimilarity 
         """
-        data = ap.rss_content(self.collection)
-        df = pd.DataFrame(data)
-       
-
-        sws = stopwords.words("english")
-        tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
-        cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
-        df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
+        try:
+            result = pd.read_pickle('_content_similarity_wrapper.pkl')
+        except:
+            data = ap.rss_content(self.collection)
+            df = pd.DataFrame(data)
         
 
-        # vectorizer = TfidfVectorizer()
-        vectorizer = HashingVectorizer(n_features=100)
-        X = vectorizer.fit_transform(df['content']).todense()
+            sws = stopwords.words("english")
+            tokenized_articles = list(map(lambda text: nltk.tokenize.wordpunct_tokenize(text), df["content"]))
+            cleaned_articles = [list(filter(lambda word: word.lower() not in sws, article)) for article in tokenized_articles]
+            df["content"] = [" ".join(cleaned_article) for cleaned_article in cleaned_articles]
+            
 
-        average_embeddings = {}
-        sources = df["feed_source"].unique()
-        for source in sources:
-            ids = df[df["feed_source"] == source].index
-            average_embeddings[source] = np.ravel(np.mean(X[ids], axis=0))
-                
-        pairs = itertools.combinations(sources, 2)
-        rows = []
-        for pair in pairs:
-            x,y = pair
-            similaritiy = np.ravel(cosine_similarity(average_embeddings[x].reshape(1,-1),average_embeddings[y].reshape(1,-1)))[0]
-            rows.append([*pair, similaritiy])
+            # vectorizer = TfidfVectorizer()
+            vectorizer = HashingVectorizer(n_features=100)
+            X = vectorizer.fit_transform(df['content']).todense()
 
-        result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
+            average_embeddings = {}
+            sources = df["feed_source"].unique()
+            for source in sources:
+                ids = df[df["feed_source"] == source].index
+                average_embeddings[source] = np.ravel(np.mean(X[ids], axis=0))
+                    
+            pairs = itertools.combinations(sources, 2)
+            rows = []
+            for pair in pairs:
+                x,y = pair
+                similaritiy = np.ravel(cosine_similarity(average_embeddings[x].reshape(1,-1),average_embeddings[y].reshape(1,-1)))[0]
+                rows.append([*pair, similaritiy])
 
-        result = result.sort_values(by=["Similarity"], ascending=ascending)
-        return result
+            result = pd.DataFrame(rows, columns=["Source 1", "Source 2", "Similarity"])
+            result.to_pickle('_content_similarity_wrapper.pkl')
+        finally:
+            result = result.sort_values(by=["Similarity"], ascending=ascending)
+            return result
 
     def published_dist_day(self):
         """
@@ -219,7 +222,7 @@ class RssAnalyzer:
         """
         Analyzes common words occuring in headlines of a news source. Output provided as table or wordcloud.
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         source = st.selectbox(label='News Source', options=tuple(self.sources))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
@@ -269,7 +272,7 @@ class RssAnalyzer:
         """
         Analyzes the relative influence of words occuring in the headlines of a source compared to the complete corpus.
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         source_selection = st.selectbox(label='News Source', options=tuple(self.sources))
         if st.button('Show'):
 

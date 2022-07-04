@@ -16,7 +16,7 @@ def reddit_comment_length_per_subreddit(collection):
     return collection.aggregate([
         {
             '$project': {
-                'comment': '$comments.text', 
+                'comment': '$comments.text',
                 'sub': '$reddit.subreddit'
             }
         }, {
@@ -25,7 +25,7 @@ def reddit_comment_length_per_subreddit(collection):
             }
         }, {
             '$group': {
-                '_id': '$sub', 
+                '_id': '$sub',
                 'average_comment_length': {
                     '$avg': {
                         '$strLenCP': '$comment'
@@ -147,6 +147,62 @@ def reddit_score_by_hour(collection):
         }
     ])
 
+def reddit_posts_by_hour(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hour_created': {
+                    '$hour': '$created'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$hour_created', 
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                '_id': 1
+            }
+        }, {
+            '$project': {
+                '_id': 0, 
+                'hour': '$_id', 
+                'count': 1
+            }
+        }
+    ])
+
+def twitter_tweets_by_hour(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hour_created': {
+                    '$hour': '$created_at'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$hour_created', 
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                '_id': 1
+            }
+        }, {
+            '$project': {
+                '_id': 0, 
+                'hour': '$_id', 
+                'count': 1
+            }
+        }
+    ])
+
 def reddit_upvote_ratios(collection):
     return collection.aggregate([
         {
@@ -176,7 +232,7 @@ def reddit_keyword_per_subreddit(collection, subreddit):
     return collection.aggregate([
         {
             '$project': {
-                'subreddit': '$reddit.subreddit', 
+                'subreddit': '$reddit.subreddit',
                 'keyword': '$keywords'
             }
         }, {
@@ -197,7 +253,7 @@ def reddit_keyword_per_subreddit(collection, subreddit):
             '$group': {
                 '_id': {
                     'keyword': '$keyword'
-                }, 
+                },
                 'count': {
                     '$sum': 1
                 }
@@ -205,7 +261,7 @@ def reddit_keyword_per_subreddit(collection, subreddit):
         }, {
             '$project': {
                 '_id': 0,
-                'keyword': '$_id.keyword', 
+                'keyword': '$_id.keyword',
                 'count': '$count'
             }
         }, {
@@ -228,16 +284,16 @@ def reddit_distribution_number_posts_per_user(collection):
     return collection.aggregate([
         {
             '$group': {
-                '_id': '$author.name', 
+                '_id': '$author.name',
                 'number_of_posts': {
                     '$sum': 1
                 }
             }
         }, {
             '$bucket': {
-                'groupBy': '$number_of_posts', 
-                'boundaries': [ 1, 5, 10, 20, 40, 60, 80, 100, 200, 500, 1000 ], 
-                'default': 'More', 
+                'groupBy': '$number_of_posts',
+                'boundaries': [1, 5, 10, 20, 40, 60, 80, 100, 200, 500, 1000],
+                'default': 'More',
                 'output': {
                     'number_of_users': {
                         '$sum': 1
@@ -246,12 +302,13 @@ def reddit_distribution_number_posts_per_user(collection):
             }
         }, {
             '$project': {
-                '_id': 0, 
-                'min_number_of_posts': '$_id', 
+                '_id': 0,
+                'min_number_of_posts': '$_id',
                 'number_of_users': 1
             }
         }
     ])
+
 
 def reddit_distribution_number_comments_per_user(collection):
     """
@@ -263,41 +320,41 @@ def reddit_distribution_number_comments_per_user(collection):
     :rtype: pymongo.command_cursor.CommandCursor
     """
     return collection.aggregate([
-            {
-                '$project': {
-                    '_id': 0, 
-                    'comment': '$comments'
+        {
+            '$project': {
+                '_id': 0,
+                'comment': '$comments'
+            }
+        }, {
+            '$unwind': {
+                'path': '$comment'
+            }
+        }, {
+            '$group': {
+                '_id': '$comment.author.name',
+                'number_of_comments': {
+                    '$sum': 1
                 }
-            }, {
-                '$unwind': {
-                    'path': '$comment'
-                }
-            }, {
-                '$group': {
-                    '_id': '$comment.author.name', 
-                    'number_of_comments': {
+            }
+        }, {
+            '$bucket': {
+                'groupBy': '$number_of_comments',
+                'boundaries': [1, 2, 5, 10, 20, 100, 200, 500, 1000, 2000],
+                'default': 'More',
+                'output': {
+                    'number_of_users': {
                         '$sum': 1
                     }
                 }
-            }, {
-                '$bucket': {
-                    'groupBy': '$number_of_comments', 
-                    'boundaries': [ 1, 2, 5, 10, 20, 100, 200, 500, 1000, 2000  ], 
-                    'default': 'More', 
-                    'output': {
-                        'number_of_users': {
-                            '$sum': 1
-                        }
-                    }
-                }
-            }, {
-                '$project': {
-                    '_id': 0, 
-                    'min_number_of_comments': '$_id', 
-                    'number_of_users': 1
-                }
             }
-        ])
+        }, {
+            '$project': {
+                '_id': 0,
+                'min_number_of_comments': '$_id',
+                'number_of_users': 1
+            }
+        }
+    ])
 
 
 def reddit_frequently_used_news_sources(collection, subreddit):
@@ -312,17 +369,17 @@ def reddit_frequently_used_news_sources(collection, subreddit):
     return collection.aggregate([
         {
             '$project': {
-                '_id': 0, 
-                'subreddit': '$reddit.subreddit', 
+                '_id': 0,
+                'subreddit': '$reddit.subreddit',
                 'domain': '$domain'
             }
         }, {
             '$match': {
                 'subreddit': subreddit
             }
-        },{
+        }, {
             '$group': {
-                '_id': '$domain', 
+                '_id': '$domain',
                 'number_of_occurrences': {
                     '$sum': 1
                 }
@@ -353,13 +410,13 @@ def reddit_count_posts_per_user(collection, limit):
     return collection.aggregate([
         {
             '$project': {
-                '_id': 0, 
-                'author_name': '$author.name', 
+                '_id': 0,
+                'author_name': '$author.name',
                 'subreddit': '$reddit.subreddit'
             }
         }, {
             '$group': {
-                '_id': '$author_name', 
+                '_id': '$author_name',
                 'num_posts': {
                     '$sum': 1
                 }
@@ -391,6 +448,121 @@ def twitter_valid_dates(collection):
             }
         }
     ])
+
+def reddit_sentiment_analysis_comments(collection):
+    return collection.aggregate(
+        [
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$match': {
+                    'comments.sentiment.compound': {
+                        '$exists': True
+                    }
+                }
+            }, {
+                '$project': {
+                    'bucket': {
+                        '$switch': {
+                            'branches': [
+                                {
+                                    'case': {
+                                        '$lt': [
+                                            '$comments.sentiment.compound', -0.05
+                                        ]
+                                    },
+                                    'then': 'negative'
+                                }, {
+                                    'case': {
+                                        '$gt': [
+                                            '$comments.sentiment.compound', 0.05
+                                        ]
+                                    },
+                                    'then': 'positive'
+                                }
+                            ],
+                            'default': 'neutral'
+                        }
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$bucket',
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'bucket': '$_id',
+                    'count': '$count'
+                }
+            }, {
+                '$sort': {
+                    'bucket': 1
+                }
+            }
+        ]
+    )
+
+
+def sentiment_analysis(collection):
+    return collection.aggregate(
+        [
+            {
+                '$match': {
+                    'sentiment.compound': {
+                        '$exists': True
+                    }
+                }
+            }, {
+                '$project': {
+                    'bucket': {
+                        '$switch': {
+                            'branches': [
+                                {
+                                    'case': {
+                                        '$lt': [
+                                            '$sentiment.compound', -0.05
+                                        ]
+                                    },
+                                    'then': 'negative'
+                                }, {
+                                    'case': {
+                                        '$gt': [
+                                            '$sentiment.compound', 0.05
+                                        ]
+                                    },
+                                    'then': 'positive'
+                                }
+                            ],
+                            'default': 'neutral'
+                        }
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$bucket',
+                    'count': {
+                        '$sum': 1
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'bucket': '$_id',
+                    'count': '$count'
+                }
+            }, {
+                '$sort': {
+                    'bucket': 1
+                }
+            }
+        ]
+    )
 
 def twitter_common_hashtags(collection, limit=100):
     return collection.aggregate([
@@ -484,7 +656,7 @@ def twitter_hashtags_per_trend(collection, limit=100):
     return collection.aggregate([
         {
             '$project': {
-                'hashtags': '$hashtags', 
+                'hashtags': '$hashtags',
                 'trend': '$trend'
             }
         }, {
@@ -494,9 +666,9 @@ def twitter_hashtags_per_trend(collection, limit=100):
         }, {
             '$group': {
                 '_id': {
-                    'trend': '$trend', 
+                    'trend': '$trend',
                     'hashtag': '$hashtags'
-                }, 
+                },
                 'count': {
                     '$sum': 1
                 }
@@ -505,17 +677,17 @@ def twitter_hashtags_per_trend(collection, limit=100):
             '$addFields': {
                 '_id.trend': {
                     '$ltrim': {
-                        'input': '$_id.trend', 
+                        'input': '$_id.trend',
                         'chars': '#'
                     }
                 }
             }
         }, {
             '$project': {
-                '_id': 0, 
-                'trend': '$_id.trend', 
-                'hastag': '$_id.hashtag', 
-                'count': '$count', 
+                '_id': 0,
+                'trend': '$_id.trend',
+                'hastag': '$_id.hashtag',
+                'count': '$count',
                 'is_neq': {
                     '$ne': [
                         {
@@ -561,7 +733,7 @@ def twitter_get_hashtags_for_specific_trend(collection, trend):
             }
         }, {
             '$project': {
-                '_id': 0, 
+                '_id': 0,
                 'hashtags': '$hashtags'
             }
         }
@@ -664,6 +836,104 @@ def twitter_recent_trends(collection, date):
         }
     ])
 
+
+def twitter_tweets_with_links(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'text': {
+                    '$split': [
+                        '$text', ' '
+                    ]
+                }
+            }
+        }, {
+            '$unwind': {
+                'path': '$text'
+            }
+        }, {
+            '$project': {
+                'text': {
+                    '$regexMatch': {
+                        'input': '$text',
+                        'regex': 'http'
+                    }
+                }
+            }
+        }, {
+            '$match': {
+                'text': {
+                    '$eq': True
+                }
+            }
+        }, {
+            '$count': 'text'
+        }, {
+            '$project': {
+                'like_count': '$text'
+            }
+        }
+    ])
+
+
+def twitter_tweets_with_likes(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'likes': '$metrics.like_count',
+                'text': 1
+            }
+        }
+    ])
+
+
+def twitter_tweet_sentiments(collection):
+    return collection.aggregate([
+        {
+            '$match': {
+                'sentiment': {
+                    '$exists': 1
+                }
+            }
+        }, {
+            '$project': {
+                'sentiment': '$sentiment.compound'
+            }
+        }, {
+            '$bucket': {
+                'groupBy': '$sentiment',
+                'boundaries': [
+                    -0.05, 0.05, 1
+                ],
+                'default': 'neutral',
+                'output': {
+                    'tweet_count': {
+                        '$sum': 1
+                    }
+                }
+            }
+        }
+    ])
+
+def twitter_all_tweets_with_geodata(collection):
+    return collection.aggregate([
+        {
+            '$match': {
+                'geo': {
+                    '$exists': True
+                }
+            }
+        }, {
+            '$project': {
+                'created_at': '$created_at',
+                'geo': '$geo',
+                'user': '$author.username',
+                'trend': 1
+            }
+        }
+    ])
+
+
 def rss_publication_stats(collection):
     return collection.aggregate([
         {
@@ -673,7 +943,7 @@ def rss_publication_stats(collection):
         },
         {
             '$group': {
-                '_id': '$feed_source', 
+                '_id': '$feed_source',
                 'article_count': {
                     '$sum': 1
                 }
@@ -681,9 +951,9 @@ def rss_publication_stats(collection):
         },
         {
             '$project': {
-                    '_id': 0, 
-                    'feed_source': '$_id', 
-                    'article_count': 1
+                '_id': 0,
+                'feed_source': '$_id',
+                'article_count': 1
             }
         }
     ]
@@ -771,12 +1041,12 @@ def rss_avg_article_length(collection):
     return collection.aggregate([
         {
             '$project': {
-                'text': '$content', 
+                'text': '$content',
                 'feed_source': '$feed_source'
             }
         }, {
             '$group': {
-                '_id': '$feed_source', 
+                '_id': '$feed_source',
                 'avg_article_length': {
                     '$avg': {
                         '$strLenCP': '$text'
@@ -790,137 +1060,189 @@ def rss_avg_article_length(collection):
         }
     ])
 
+
 def rss_tags(collection):
     return collection.aggregate([
-            {
-                '$project': {
-                    'feed_source': 1, 
-                    'tags': 1
-                }
-            }, {
-                '$unwind': {
-                    'path': '$tags'
-                }
-            }, {
-                '$group': {
-                    '_id': '$feed_source', 
-                    'tags': {
-                        '$push': '$tags'
-                    }
-                }
-            }, {
-                '$project': {
-                    '_id': 0, 
-                    'feed_source': '$_id', 
-                    'tags': 1
+        {
+            '$project': {
+                'feed_source': 1,
+                'tags': 1
+            }
+        }, {
+            '$unwind': {
+                'path': '$tags'
+            }
+        }, {
+            '$group': {
+                '_id': '$feed_source',
+                'tags': {
+                    '$push': '$tags'
+                },
+                 'count': {
+                    '$sum': 1
                 }
             }
-        ])
+        },
+        {
+            '$match': {
+                'count': {
+                    '$gte': 500
+                }
+            }
+        },
+        {
+            '$project': {
+                '_id': 0,
+                'feed_source': '$_id',
+                'tags': 1
+            }
+        }
+    ])
+
 
 def rss_tag_count(collection, source):
     return collection.aggregate([
-            {
-                '$match': {
-                    'feed_source': {'$eq' : source}
-                }
-            },
-            {
-                '$project': {
-                    'feed_source': 1, 
-                    'tags': 1
-                }
-            }, {
-                '$unwind': {
-                    'path': '$tags'
-                }
-            }, {
-                '$group': {
-                    '_id': {'feed_source': '$feed_source','tag': '$tags'}, 
-                    'count': {
-                        '$sum': 1
-                    }
-                }
-            }, {
-                '$project': {
-                    '_id': 0, 
-                    'feed_source': '$_id.feed_source',
-                    'tag': '$_id.tag', 
-                    'count': 1
+        {
+            '$match': {
+                'feed_source': {'$eq': source}
+            }
+        },
+        {
+            '$project': {
+                'feed_source': 1,
+                'tags': 1
+            }
+        }, {
+            '$unwind': {
+                'path': '$tags'
+            }
+        }, {
+            '$group': {
+                '_id': {'feed_source': '$feed_source', 'tag': '$tags'},
+                'count': {
+                    '$sum': 1
                 }
             }
-        ])
+        }, {
+            '$project': {
+                '_id': 0,
+                'feed_source': '$_id.feed_source',
+                'tag': '$_id.tag',
+                'count': 1
+            }
+        }
+    ])
+
 
 def rss_content(collection):
     return collection.aggregate([
-            {
-                '$project': {
-                    'feed_source': 1,
-                    'content': 1
-                }
+        {
+            '$project': {
+                'feed_source': 1,
+                'content': 1
             }
-        ])
+        }
+    ])
+
 
 def rss_published_distribution_per_weekday(collection):
     return collection.aggregate([
-            {
-                '$match': {
-                    'published': {
-                        '$type': 9
-                    }
-                }
-            }, {
-                '$project': {
-                    'day': {
-                        '$isoDayOfWeek': '$published'
-                    }
-                }
-            }, {
-                '$group': {
-                    '_id': '$day', 
-                    'count': {
-                        '$sum': 1
-                    }
+        {
+            '$match': {
+                'published': {
+                    '$type': 9
                 }
             }
-        ])
+        }, {
+            '$project': {
+                'day': {
+                    '$isoDayOfWeek': '$published'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$day',
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }
+    ])
+
+def reddit_activity_per_weekday(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'day': {
+                    '$isoDayOfWeek': '$created'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$day',
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }
+    ])
+
+def twitter_activity_per_weekday(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'day': {
+                    '$isoDayOfWeek': '$created_at'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$day',
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }
+    ])
 
 def rss_published_distribution_per_hour(collection):
     return collection.aggregate([
-            {
-                '$match': {
-                    'published': {
-                        '$type': 9
-                    }
-                }
-            }, {
-                '$project': {
-                    'day': {
-                        '$hour': '$published'
-                    }
-                }
-            }, {
-                '$group': {
-                    '_id': '$day', 
-                    'count': {
-                        '$sum': 1
-                    }
-                }
-            }, {
-                '$sort': {
-                    '_id': 1
+        {
+            '$match': {
+                'published': {
+                    '$type': 9
                 }
             }
-        ])
+        }, {
+            '$project': {
+                'hour': {
+                    '$hour': '$published'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$hour',
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                '_id': 1
+            }
+        }
+    ])
+
 
 def rss_headlines(collection):
     return collection.aggregate([
-            {
-                '$project': {
-                    'title': 1,
-                    'feed_source': 1
-                }
+        {
+            '$project': {
+                'title': 1,
+                'feed_source': 1
             }
-        ])
+        }
+    ])
 
 def upserting_combined_analysis_for_twitter(collection):
     """
