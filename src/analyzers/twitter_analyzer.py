@@ -102,8 +102,6 @@ class TwitterAnalyzer:
             ]
 
             df = pd.DataFrame(content)
-            print(df)
-
             fig = px.pie(df, values="count", names="label")
             st.write(fig)
 
@@ -118,18 +116,10 @@ class TwitterAnalyzer:
             for bucket in tweets:
                 all_tweets += bucket['count']
 
-            result = {'negative': {}, 'neutral': {}, 'positive': {}}
+            result = [{'count': bucket['count'], 'label': bucket['bucket']} for bucket in tweets]
 
-            for bucket in tweets:
-                result[bucket['bucket']
-                       ]['Twitter tweets'] = bucket['count'] / all_tweets
-
-            df_result = pd.DataFrame(result).reset_index().rename(
-                {'index': 'Sources'}, axis=1)
-            print(df_result)
-
-            fig = px.bar(df_result, x='Sources', y=[
-                         'negative', 'neutral', 'positive'])
+            df_result = pd.DataFrame(result)
+            fig = px.pie(df_result, values="count", names="label")
             st.write(fig)
 
 
