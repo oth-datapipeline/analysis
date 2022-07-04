@@ -586,43 +586,20 @@ def twitter_tweet_sentiments(collection):
         }
     ])
 
-def twitter_trends_of_geodata_tweets(collection):
-    return collection.aggregate([
-    {
-        '$match': {
-            'geo': {
-                '$exists': True
-            }
-        }
-    }, {
-        '$group': {
-            '_id': '$trend'
-        }
-    }, {
-        '$project': {
-            '_id': 0, 
-            'trend': '$_id'
-        }
-    }
-])
-
-
-def twitter_geodata_createdat_by_trend(collection, trend):
+def twitter_geodata_createdat_by_trend(collection):
     return collection.aggregate([
         {
             '$match': {
                 'geo': {
                     '$exists': True
-                },
-                'trend': {
-                    '$eq': trend
                 }
             }
         }, {
             '$project': {
                 'created_at': '$created_at',
                 'geo': '$geo',
-                'user': '$author.username'
+                'user': '$author.username',
+                'trend': 1
             }
         }
     ])

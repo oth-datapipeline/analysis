@@ -19,7 +19,6 @@ class TwitterAnalyzer:
     :type mongoclient: pymongo.MongoClient
     """
     static_trend_options = None
-    static_geodata_trend_options = None
 
     def __init__(self, mongoclient):
         self.collection = mongoclient['data']['twitter.tweets']
@@ -127,23 +126,19 @@ class TwitterAnalyzer:
     def tweets_trends_on_map(self):
         """
         Creates a map with markers per twitter user based on their tweets regarding a specific trend.
-        """
-        trends_with_geodata = ap.twitter_trends_of_geodata_tweets(self.collection)
-        TwitterAnalyzer.static_geodata_trend_options = list(map(lambda trend_dict: trend_dict.get('trend'), trends_with_geodata))
-        trend = st.selectbox(label='Trend', options=TwitterAnalyzer.static_geodata_trend_options)
-        
+        """       
         if st.button('Show'):
-            tweets = list(ap.twitter_geodata_createdat_by_trend(self.collection, trend))
+            tweets = list(ap.twitter_geodata_createdat_by_trend(self.collection))
             for tweet in tweets:
                 tweet['long'] = tweet['geo']['long']
                 tweet['lat'] = tweet['geo']['lat']
                 tweet.pop('geo')
-            print(tweets)
             df = pd.DataFrame(tweets)
+            df['trend'] = df['trend'].apply(lambda trend: trend.lstrip('#'))
             fig = pgo.Figure(data=pgo.Scattergeo(
                 lon = df['long'],
                 lat = df['lat'],
-                text = df['user'],
+                text = df['user'] + ": #" + df['trend'],
                 mode = 'markers'
             ))
             st.write(fig)
