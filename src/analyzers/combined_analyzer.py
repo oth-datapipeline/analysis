@@ -16,6 +16,7 @@ class CombinedAnalyzer:
         self.twitter_collection = mongoclient['data']['twitter.tweets']
         self.reddit_collection = mongoclient['data']['reddit.posts']
         self.combined_keyword_collection = mongoclient['analysis']['combined_keyword_analysis']
+        self.reddit_comments_collection = mongoclient['analysis']['reddit_comments']
 
     def keyword_frequency_twitter(self):
         keywords = [k['keyword'] for k in list(ap.keywords_in_news_article(self.combined_keyword_collection, source='twitter'))]
@@ -96,7 +97,6 @@ class CombinedAnalyzer:
             st.write(fig)
 
     def compare_profanity_score_reddit_twitter(self):
-        include_reddit_comments = st.checkbox('Include Reddit comments (Note: long runtime)')
         if st.button('Show'):
             fig = go.Figure()
             categories = ['(0.0, 0.25]', '(0.25, 0.5]', '(0.5, 0.75]', '(0.75, 1.0]']
@@ -114,14 +114,13 @@ class CombinedAnalyzer:
                 y=reddit_posts_distribution,
                 name='Reddit posts'
             ))
-            if include_reddit_comments:
-                reddit_comments = pd.DataFrame(ap.reddit_get_all_comments(self.reddit_collection))
-                reddit_comments['text'] = reddit_comments['text'].astype('U').values
-                reddit_comments_distribution = get_profanity_distribution(reddit_comments)
-                fig.add_trace(go.Bar(
-                    x=categories,
-                    y=reddit_comments_distribution,
-                    name='Reddit comments'
-                ))
-            fig.update_layout(barmode='group')
+            reddit_comments = pd.DataFrame(self.reddit_comments_collection.find({}, {'_id': 0, 'comment': 1}))
+            reddit_comments['text'] = reddit_comments['comment'].astype('U').values
+            reddit_comments_distribution = get_profanity_distribution(reddit_comments)
+            fig.add_trace(go.Bar(
+                x=categories,
+                y=reddit_comments_distribution,
+                name='Reddit comments'
+            ))
+            fig.update_layout(barmode='group', xaxis_title='Profanity score', yaxis_title='Percentage')
             st.write(fig)

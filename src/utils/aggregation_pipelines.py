@@ -445,21 +445,6 @@ def twitter_high_interaction_hashtags(collection, limit=100):
         }
     ])
 
-def reddit_get_all_comments(collection):
-    return collection.aggregate([
-        {
-            '$unwind': {
-                'path': '$comments'
-            }
-        }, 
-        {
-            '$project': {
-                '_id': 0,
-                'text': '$comments.text'
-            }
-        }
-    ])
-
 
 def twitter_most_liked_hashtags(collection, limit=100):
     return collection.aggregate([
@@ -1175,6 +1160,30 @@ def upserting_combined_analysis_for_rss(collection):
             }
         ]
     )
+
+
+def get_all_reddit_comments(collection):
+    """
+    Aggregation pipeline for filling the collection 'reddit_comments' in the analysis database
+
+    :param collection: MongoDB collection for Reddit posts
+    :type collection: pymongo.collection.Collection
+    :return: result cursor
+    :rtype: pymongo.command_cursor.CommandCursor
+    """
+    return collection.aggregate([
+        {
+            '$unwind': {
+                'path': '$comments'
+            }
+        }, {
+            '$project': {
+                '_id': 0,
+                'text': '$comments.text'
+            }
+        }
+    ])
+
 
 def keywords_in_news_article(collection, source):
     assert source in ['twitter', 'reddit']
