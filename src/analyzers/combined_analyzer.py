@@ -124,6 +124,7 @@ class CombinedAnalyzer:
                 name='Reddit comments'
             ))
             fig.update_layout(barmode='group', xaxis_title='Profanity score', yaxis_title='Percentage')
+            st.write(fig)
 
     def activity_by_hour(self):
         if st.button('Show'):
