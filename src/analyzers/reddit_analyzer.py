@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import utils.constants as const
 import plotly.express as px
+from wordcloud import WordCloud
 
 class RedditAnalyzer:
     """
@@ -18,7 +19,7 @@ class RedditAnalyzer:
         """
         Analyzes which are the top reddit posts in our database
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_top_posts(self.collection, limit)))
             st.table(result)
@@ -27,7 +28,7 @@ class RedditAnalyzer:
         """
         Analyzes the most controversial posts by searching for the lowest upvote_ratios
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_controversial_posts(self.collection, limit)))
             st.table(result)
@@ -123,7 +124,10 @@ class RedditAnalyzer:
         limit = int(st.text_input(label='Limit', value='30'))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.reddit_count_posts_per_user(self.collection, limit)))
-            st.table(result)
+            result.rename(columns={'_id': 'Username', 'num_posts': 'Number of posts'}, inplace=True)
+            fig = px.bar(result, x='Number of posts', y='Username', orientation='h')
+            fig.update_yaxes(autorange='reversed')
+            st.write(fig)
 
     def reddit_posts_comment_sentiment_analysis(self):
         """

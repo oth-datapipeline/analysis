@@ -44,13 +44,13 @@ class TwitterAnalyzer:
         """
         Analyzes how many tweets tagged a trend as a hashtag
         """
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.twitter_hashtags_per_trend(self.collection, limit=limit)))
             st.table(result)
 
     def most_common_hashtags(self):
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.twitter_common_hashtags(self.collection, limit=limit)))
@@ -65,7 +65,7 @@ class TwitterAnalyzer:
                 st.write(fig)
 
     def most_liked_hashtags(self):
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.twitter_most_liked_hashtags(self.collection, limit=limit)))
@@ -80,7 +80,7 @@ class TwitterAnalyzer:
                 st.write(fig)
 
     def high_interaction_hashtags(self):
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             result = pd.DataFrame(list(ap.twitter_high_interaction_hashtags(self.collection, limit=limit)))
@@ -133,10 +133,9 @@ class TwitterAnalyzer:
         Analyzes the (cor-)relation between tweet profanity, i.e. use of cursewords, and like count.
         """
         if st.button('Show'):
-
             tweets = list(ap.twitter_tweets_with_likes(self.collection))
             df = pd.DataFrame(tweets)
-
+            
             profanity_scores = predict_prob(df["text"])
             df["profanity_scores"] = profanity_scores
 
@@ -208,13 +207,14 @@ class TwitterAnalyzer:
                 text=df['user'] + ": #" + df['trend'],
                 mode='markers'
             ))
+            st.write(fig)
 
     def longtime_user_trends(self):
         """
         Analyzes the trends within the group of users with a profile older than 10 years
         """
         st.info("Longtime user = User whose profile was older than 10 years upon creating the tweet")
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             longtime_user_predicate = {"$gte": TwitterAnalyzer.user_types["longtime"]}
@@ -237,7 +237,7 @@ class TwitterAnalyzer:
         Analyzes the trends within the group of users with a profile younger than 30 days
         """
         st.info("Recently created user = User whose profile was younger than 30 days upon creating the tweet")
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             longtime_user_predicate = {"$lte": TwitterAnalyzer.user_types["recent"]}
@@ -261,7 +261,7 @@ class TwitterAnalyzer:
         Analyzes the trends within the group of users with a profile younger than 1 day
         """
         st.info("Bot = User whose profile was younger than 1 day upon creating the tweet")
-        limit = int(st.text_input("Limit", value="100"))
+        limit = int(st.text_input("Limit", value="30"))
         output_wc = st.radio("Output as Wordcloud", options=tuple(["Yes", "No"]))
         if st.button('Show'):
             longtime_user_predicate = {"$lte": TwitterAnalyzer.user_types["bot"]}

@@ -1021,9 +1021,20 @@ def rss_tags(collection):
                 '_id': '$feed_source',
                 'tags': {
                     '$push': '$tags'
+                },
+                 'count': {
+                    '$sum': 1
                 }
             }
-        }, {
+        },
+        {
+            '$match': {
+                'count': {
+                    '$gte': 500
+                }
+            }
+        },
+        {
             '$project': {
                 '_id': 0,
                 'feed_source': '$_id',

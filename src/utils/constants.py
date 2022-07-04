@@ -15,7 +15,7 @@ ANALYSES_BY_DATA_SOURCE = {
         'distribution_number_posts_per_user': 'Distribution of number of posts per user',
         'frequently_used_news_sources': 'Frequently used news sources',
         'count_posts_per_user': 'Most active users',
-        'reddit_posts_comment_sentiment_analysis': 'Sentiment analysis of all posts and comments'
+        'reddit_posts_comment_sentiment_analysis': 'Sentiment analysis of all posts and comments',
         'score_dist_by_hour': 'Average post score by hour'
     },
     DATA_SOURCE_TWITTER: {
@@ -27,7 +27,7 @@ ANALYSES_BY_DATA_SOURCE = {
         'profanity_like_correlation': 'Correlation between profanity of tweets and their likes',
         'links_tweet_share': 'Share of link tweets in total tweets',
         'tweet_sentiment_analysis': 'Sentiment analysis of all tweets',
-        'tweets_overall_on_map': 'Show tweet geolocations on map'
+        'tweets_overall_on_map': 'Show tweet geolocations on map',
         'recent_user_trends': 'Trends of recently created users',
         'bot_trends': 'Trends of (possible) bots',
         'longtime_user_trends': 'Trends of longtime users',
