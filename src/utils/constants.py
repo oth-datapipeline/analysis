@@ -54,7 +54,9 @@ ANALYSES_BY_DATA_SOURCE = {
     DATA_SOURCE_COMBINED: {
         'keyword_frequency_twitter': 'Occurrences of Twitter trends in news article',
         'keyword_frequency_reddit': 'Occurrences of Reddit keywords in news article',
-        'sentiment_analysis': 'Comparison of sentiment in posts and tweets among Reddit and Twitter'
+        'sentiment_analysis': 'Comparison of sentiment in posts and tweets among Reddit and Twitter',
+        'activity_by_hour': 'Activity of data sources by hour',
+        'activity_by_weekday': 'Activity of data sources by weekday'
     }
 }
 

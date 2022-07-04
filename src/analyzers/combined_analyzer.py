@@ -1,3 +1,4 @@
+from matplotlib.pyplot import title
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
@@ -89,4 +90,57 @@ class CombinedAnalyzer:
             df_result = pd.DataFrame(result).reset_index().rename({'index': 'Sources'}, axis=1)
             print(df_result)
             fig = px.bar(df_result, x='Sources', y=['negative', 'neutral', 'positive'])
+            st.write(fig)
+
+    def activity_by_hour(self):
+        if st.button('Show'):
+            twitter_activity = pd.DataFrame(list(ap.twitter_tweets_by_hour(self.twitter_collection)))
+            rss_activity = pd.DataFrame(list(ap.rss_published_distribution_per_hour(self.rss_collection)))
+            reddit_activity = pd.DataFrame(list(ap.reddit_posts_by_hour(self.reddit_collection)))
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_trace(
+                go.Scatter(x=list(twitter_activity['hour']), y=list(twitter_activity['count']), name='Twitter activity')
+            )
+            fig.add_trace(
+                go.Scatter(x=list(reddit_activity['hour']), y=list(reddit_activity['count']), name='Reddit activity')
+            )
+            fig.add_trace(
+                go.Scatter(x=list(rss_activity['_id']), y=list(rss_activity['count']), name='RSS Activity')
+            )
+            fig.update_xaxes(title_text='Hour')
+            fig.update_yaxes(title_text='Activity')
+            st.write(fig)
+
+    def activity_by_weekday(self):
+        if st.button('Show'):
+            twitter_activity = pd.DataFrame(list(ap.twitter_activity_per_weekday(self.twitter_collection))).sort_values(by=['_id'], ascending=True)
+            rss_activity = pd.DataFrame(list(ap.rss_published_distribution_per_weekday(self.rss_collection))).sort_values(by=['_id'], ascending=True)
+            reddit_activity = pd.DataFrame(list(ap.reddit_activity_per_weekday(self.reddit_collection))).sort_values(by=['_id'], ascending=True)
+
+            daysOftheWeek = ("ISO Week days start from 1",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+            )
+
+            twitter_activity['_id'] = twitter_activity['_id'].apply(lambda day: daysOftheWeek[day])
+            rss_activity['_id'] = rss_activity['_id'].apply(lambda day: daysOftheWeek[day])
+            reddit_activity['_id'] = reddit_activity['_id'].apply(lambda day: daysOftheWeek[day])
+
+            fig = make_subplots(specs=[[{"secondary_y": True}]])
+            fig.add_trace(
+                go.Scatter(x=list(twitter_activity['_id']), y=list(twitter_activity['count']), name='Twitter activity')
+            )
+            fig.add_trace(
+                go.Scatter(x=list(reddit_activity['_id']), y=list(reddit_activity['count']), name='Reddit activity')
+            )
+            fig.add_trace(
+                go.Scatter(x=list(rss_activity['_id']), y=list(rss_activity['count']), name='RSS Activity')
+            )
+            fig.update_xaxes(title_text='Day of the Week')
+            fig.update_yaxes(title_text='Activity')
             st.write(fig)

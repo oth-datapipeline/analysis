@@ -147,6 +147,62 @@ def reddit_score_by_hour(collection):
         }
     ])
 
+def reddit_posts_by_hour(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hour_created': {
+                    '$hour': '$created'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$hour_created', 
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                '_id': 1
+            }
+        }, {
+            '$project': {
+                '_id': 0, 
+                'hour': '$_id', 
+                'count': 1
+            }
+        }
+    ])
+
+def twitter_tweets_by_hour(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'hour_created': {
+                    '$hour': '$created_at'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$hour_created', 
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }, {
+            '$sort': {
+                '_id': 1
+            }
+        }, {
+            '$project': {
+                '_id': 0, 
+                'hour': '$_id', 
+                'count': 1
+            }
+        }
+    ])
+
 def reddit_upvote_ratios(collection):
     return collection.aggregate([
         {
@@ -1113,6 +1169,41 @@ def rss_published_distribution_per_weekday(collection):
         }
     ])
 
+def reddit_activity_per_weekday(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'day': {
+                    '$isoDayOfWeek': '$created'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$day',
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }
+    ])
+
+def twitter_activity_per_weekday(collection):
+    return collection.aggregate([
+        {
+            '$project': {
+                'day': {
+                    '$isoDayOfWeek': '$created_at'
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$day',
+                'count': {
+                    '$sum': 1
+                }
+            }
+        }
+    ])
 
 def rss_published_distribution_per_hour(collection):
     return collection.aggregate([
@@ -1124,13 +1215,13 @@ def rss_published_distribution_per_hour(collection):
             }
         }, {
             '$project': {
-                'day': {
+                'hour': {
                     '$hour': '$published'
                 }
             }
         }, {
             '$group': {
-                '_id': '$day',
+                '_id': '$hour',
                 'count': {
                     '$sum': 1
                 }
